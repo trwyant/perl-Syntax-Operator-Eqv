@@ -47,7 +47,7 @@ static OP *pp_eqv(pTHX) {
     SV *rhs = TOPm1s;
 
     POPs;
-    SETs( compute_eqv( lhs, rhs ) );
+    SETs( compute_eqv( aTHX_ lhs, rhs ) );
     RETURN;
 }
 
@@ -58,7 +58,7 @@ static OP *pp_EQV(pTHX) {
     SV *rhs = TOPm1s;
 
     POPs;
-    SETs( compute_eqv( lhs, rhs ) );
+    SETs( compute_eqv( aTHX_ lhs, rhs ) );
     RETURN;
 }
 
