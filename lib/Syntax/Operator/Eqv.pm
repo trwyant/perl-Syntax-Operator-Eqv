@@ -31,18 +31,18 @@ sub unimport {				## no critic (RequireArgUnpacking)
 }
 
 sub import_into {			## no critic (RequireArgUnpacking)
-    shift->__apply( 1, @_ );
+    shift->apply( 1, @_ );
     return;
 }
 
 sub unimport_from {			## no critic (RequireArgUnpacking)
-    shift->__apply( 0, @_ );
+    shift->apply( 0, @_ );
     return;
 }
 
 my @all_infix = qw{ eqv EQV };
 
-sub __apply {
+sub apply {
     my ( $pkg, $on, $caller, @syms ) = @_;
     # state @all_infix = qw( eqv ≍ ); # ≍ is EQUIVALENT TO, U+224D
     @syms or @syms = @all_infix;
@@ -125,30 +125,6 @@ you must use C<scalar()> explicitly:
  if ( is_eqv( $empty_p, scalar @array ) ) { ... }
 
 This subroutine is exportable, but it is not exported by default.
-
-=head1 METHODS
-
-=head2 import
-
-This static method imports symbols into the caller's name space. It is
-called implicitly by C<use Syntax::Operator::Eqv;>, and would normally
-not be called by the user.
-
-=head2 unimport
-
-This static method removes symbols from the caller's name space. It is
-called implicitly by C<no Syntax::Operator::Eqv;>, and would normally
-not be called by the user.
-
-=head2 import_into
-
-This static method imports symbols into the name space specified by the
-first argument. Subsequent arguments are the symbols to import.
-
-=head2 unimport_from
-
-This static method removes symbols from the name space specified by the
-first argument. Subsequent arguments are the symbols to remove.
 
 =head1 MOTIVATION
 
