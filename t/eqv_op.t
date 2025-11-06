@@ -5,6 +5,8 @@ use 5.014;
 use strict;
 use warnings;
 
+use utf8;
+
 use Test2::V0;
 use Syntax::Operator::Eqv;
 
@@ -14,7 +16,7 @@ BEGIN {
 }
 
 use lib qw{ inc };
-use My::Module::Test qw{ quote title };
+use My::Module::Test qw{ title };
 
 use constant TPLT_EQV_L_TRUE	=> '%s eqv %s is true';
 use constant TPLT_EQV_L_FALSE	=> '%s eqv %s is false';
@@ -40,7 +42,7 @@ ok_EQV 1, 1;
 ok 0 eqv 0 && 0, '&& binds more tightly than eqv';
 ok( ! ( 0 eqv 1 and 0 ), 'and binds more loosely than eqv' );
 ok( ( 0 EQV 0 and 0 ), 'and binds more tightly than EQV' );
-
+#
 # Other stuff
 ok_eqv 0, '';
 ok_eqv 1, 2;
@@ -49,6 +51,16 @@ ok_eqv 1, \0;
 ok_eqv 2, [];
 ok_eqv {}, \&is_eqv;
 not_ok_eqv 0, '0 but true';
+{
+    my @left;
+    my @right;
+    ok @left eqv @right, 'Empty arrays are equivalent';
+    @left = ( 'A' );
+    ok ! ( @left eqv @right ), 'Non-empty array not equivalent to empty array';
+    @right = qw{ alpha beta };
+    ok @left eqv @right, 'Non-empty arrays are equivalent';
+
+}
 
 =begin comment
 
@@ -88,8 +100,6 @@ done_testing;
 sub not_ok_eqv {
     my ( $lhs, $rhs ) = @_;
     my $ctx = context;
-    my ( $q_lhs, $q_rhs ) = quote( $lhs, $rhs );
-    my $title = "$q_lhs eqv $q_rhs is false";
     my $rslt = $ctx->ok( ! ( $lhs eqv $rhs ),
 	title( TPLT_EQV_L_FALSE, $lhs, $rhs ) );
     $ctx->release();
