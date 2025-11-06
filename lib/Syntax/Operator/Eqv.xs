@@ -42,7 +42,7 @@ static SV *compute_eqv( pTHX_ SV *lhs, SV *rhs ) {
 
 static OP *pp_eqv(pTHX) {
     dSP;
-    dTARG;
+    /* dTARG;	unnecessary on my build */
     SV *lhs = TOPs;
     SV *rhs = TOPm1s;
 
@@ -53,7 +53,7 @@ static OP *pp_eqv(pTHX) {
 
 static OP *pp_EQV(pTHX) {
     dSP;
-    dTARG;
+    /* dTARG;	unnecessary on my build */
     SV *lhs = TOPs;
     SV *rhs = TOPm1s;
 
