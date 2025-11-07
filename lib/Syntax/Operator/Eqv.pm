@@ -16,6 +16,8 @@ our $VERSION = '0.000_001';
 require XSLoader;
 XSLoader::load( __PACKAGE__, $VERSION );
 
+use constant REF_HASH	=> ref {};
+
 sub import {				## no critic (RequireArgUnpacking)
     my $pkg = shift;
     my $caller = caller;
@@ -47,15 +49,27 @@ sub apply {
     # state @all_infix = qw( <==> ≍ ); # ≍ is EQUIVALENT TO, U+224D
     @syms or @syms = @all_infix;
     $pkg->XS::Parse::Infix::apply_infix( $on, \@syms, @all_infix );
-    my %syms = map { $_ => 1 } @syms;
+
     my $caller_pkg;
-    foreach ( qw( equivalent implies ) ) {
-	next unless delete $syms{$_};
-	$caller_pkg //= meta::package->get( $caller );
-	$on ? $caller_pkg->add_symbol( '&'.$_ => \&{$_} )
-	    : $caller_pkg->remove_symbol( '&'.$_ );
+    my %export_ok = map { $_ => 1 } qw{ equivalent implies };
+    my @unrecognized;
+    while ( @syms ) {
+	my $symbol = shift @syms;
+	my %opt;
+	%opt = %{ shift @syms } if ref( $syms[0] ) eq REF_HASH;
+	my $alias = delete( $opt{ '-as' } ) // $symbol;
+	croak 'Unrecognized import options ', join ', ', sort keys %opt
+	    if keys %opt;
+	if ( $export_ok{$symbol} ) {
+	    $caller_pkg //= meta::package->get( $caller );
+	    $on ? $caller_pkg->add_symbol( "&$alias" => \&{$symbol} )
+		: $caller_pkg->remove_symbol( "&$alias" );
+	} else {
+	    push @unrecognized, $symbol;
+	}
     }
-    croak "Unrecognised import symbols @{[ sort keys %syms ]}" if keys %syms;
+    local $" = ', ';
+    croak "Unrecognised import symbols @unrecognized" if @unrecognized;
     return;
 }
 
@@ -87,6 +101,24 @@ v5.14, the infix operators can not be used until Perl v5.38.
 
 =head1 OPERATORS
 
+All operators are imported by default. If you do not want all of them,
+you can specify the ones you do want in the import list. If you do not
+like the way I have spelled an operator name you can import it under the
+name you prefer by following the original operator name in the import
+list with a reference to a hash containing key C<'-as'> whose value is
+your preferred name. For example, after
+
+ use Syntax::Operator::Equ '<==>' => { -as => '(=)' };
+
+the Perl compiler will recognize C<'(=)'> as the high-precedence
+equivalence operator, not '<==>'.
+
+Operator names are imported lexically. If the above example is done
+inside a block, the name of the operator will revert to C<'<==>'> on
+block exit.
+
+The following operators are available:
+
 =head2 <==>
 
 This Boolean operator computes logical equivalence.
@@ -106,26 +138,17 @@ Truth table:
 That is, the operator returns a true value if its operands are both true
 or both false, and a false value otherwise.
 
-This operator binds equivalently to the Boolean or operator C<'||'>. In
-Algol it binds more loosely than 'or', but as far as I can tell the Perl
-operator plug-in mechanism does not allow the addition of new binding
-strengths.
-
-The default spelling of this operator is C<'<==>'>. If you would prefer
-a different spelling, you can do an explicit import:
-
- use Syntax::Operator::Eqv '<==>' => { -as => 'is_equivalent_to' };
-
-This operator is exported by default.
+This operator has the same precedence as the Boolean or operator
+C<'||'>. In Algol it has a lower precedence than 'or', but as far as I
+can tell the Perl operator plug-in mechanism does not allow the addition
+of new binding strengths.
 
 =head2 eqv
 
 This Boolean operator performs the same function as L<< <==>|/<==> >>,
-but binds more loosely.
+but has a lower precedence.
 
-This operator binds equivalently to C<'or'>.
-
-This operator is exported by default.
+This operator has the same precedence as C<'or'>.
 
 =head2 ==>>
 
@@ -147,71 +170,44 @@ That is, the operator returns a true value if its left operand is false
 or its right operand is true. This behavior follows from the fact that a
 false proposition implies any proposition.
 
-This operator binds equivalently to the Boolean or operator C<'||'>. In
-Algol it binds more loosely than L<< <==>|/<==> >>, but as far as I can
-tell the Perl operator plug-in mechanism does not allow the addition of
-new binding strengths.
-
-This operator is exported by default.
+This operator has the same precedence as the Boolean or operator
+C<'||'>. In Algol it has a lower precedence than logical equivalence.
 
 =head2 imp
 
 This Boolean operator performs the same function as L<< ==>>|/==>> >>,
-but binds more loosely.
+but has a lower precedence.
 
-This operator binds equivalently to C<'or'>.
-
-This operator is exported by default.
+This operator has the same precedence as C<'or'>.
 
 =head1 SUBROUTINES
 
-The following subroutines are exportable on request.
+In addition to infix operators, this package provides equivalent wrapper
+functions. These must be explicitly imported. Under suitable conditions
+(meaning that the operands are not too complex) the wrapper functions
+can be inlined.
+
+You can specify a different name for the wrapper function when you
+import it, using the same mechanism as for infix operators.
+
+B<Unlike> the infix operators, wrapper function names are imported into
+your name space. For the moment.
+
+The following wrapper functions are available:
 
 =head2 equivalent
 
  say '$x and $y are either both true or both false'
    if equivalent( $x, $y );
 
-This subroutine returns a true value if its operands are either both
-true or both false, or a false value otherwise. It is equivalent to
-
- sub equivalent( $x, $y ) { $x && $y || ! $x && ! $y }
-
-but under suitable conditions can be inlined.
-
-This subroutine is exportable, but it is not exported by default.
+This function wraps L<< <==>|/<==> >> and performs the same computation.
 
 =head2 implies
 
  say '$x imples $y'
    if implies( $x, $y );
 
-This subroutine returns a false value if its left operand is true and
-its right operand false, or a true value otherwise. It is equivalent to
-
- sub implies( $x, $y ) { ! $x || $y }
-
-but under suitable conditions can be inlined.
-
-This subroutine is exportable, but it is not exported by default.
-
-=head1 MOTIVATION
-
-In addition to the usual Boolean operators, Algol 60 had a couple
-unconventional ones: C<eqv> and C<imp>. These were logical equivalence
-and logical implication respectively.
-
-In terms of the traditional Boolean operators, C<X eqv Y> was C<X && Y
-|| ! X && ! Y>. That is, it evaluated true if the operands were both
-true or both false. I remember finding this useful, and missed it in
-other languages.
-
-On the other hand, C<X imp Y> was C<! X || Y>. That is, it was true
-unless the left operand was true and the right operand false. I do not
-recall having much use for this.
-
-At some point I realized that pluggable infix operators could give me
-C<eqv> in Perl -- plus I had an excuse to play with a new toy.
+This function wraps L<< ==>>|/==>> >> and performs the same computation.
 
 =head1 SEE ALSO
 
