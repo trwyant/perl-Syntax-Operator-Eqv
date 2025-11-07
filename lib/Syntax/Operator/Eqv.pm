@@ -40,7 +40,7 @@ sub unimport_from {			## no critic (RequireArgUnpacking)
     return;
 }
 
-my @all_infix = qw{ eqv EQV imp IMP };
+my @all_infix = qw{ eqv EQV ==>> imp };
 
 sub apply {
     my ( $pkg, $on, $caller, @syms ) = @_;
@@ -76,9 +76,9 @@ Syntax::Operator::Eqv - Implement infix Boolean equivalence and implication oper
 
 =head1 DESCRIPTION
 
-This Perl module implements two infix Boolean operators, C<eqv> (logical
-equivalence) and C<imp> (logical implication) which I have previously
-encountered only in Algol 60.
+This Perl module implements two infix Boolean operators, logical
+equivalence and logical implication, which I have previously encountered
+only in Algol 60.
 
 In addition this module provides wrapper functions for the operators.
 
@@ -127,7 +127,7 @@ This operator binds equivalently to C<'or'>.
 
 This operator is exported by default.
 
-=head2 imp
+=head2 ==>>
 
 This Boolean operator computes logical implication.
 
@@ -154,10 +154,10 @@ binding strengths.
 
 This operator is exported by default.
 
-=head2 IMP
+=head2 imp
 
-This Boolean operator performs the same function as L<imp|/imp>, but
-binds more loosely.
+This Boolean operator performs the same function as L<< ==>>|/==>> >>,
+but binds more loosely.
 
 This operator binds equivalently to C<'or'>.
 

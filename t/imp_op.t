@@ -18,60 +18,60 @@ BEGIN {
 use lib qw{ inc };
 use My::Module::Test qw{ title };
 
-use constant TPLT_IMP_L_TRUE	=> '%s imp %s is true';
-use constant TPLT_IMP_L_FALSE	=> '%s imp %s is false';
-use constant TPLT_IMP_U_TRUE	=> '%s IMP %s is true';
-use constant TPLT_IMP_U_FALSE	=> '%s IMP %s is false';
+use constant TPLT_IMP_HI_TRUE	=> '%s ==>> %s is true';
+use constant TPLT_IMP_HI_FALSE	=> '%s ==>> %s is false';
+use constant TPLT_IMP_LO_TRUE	=> '%s imp %s is true';
+use constant TPLT_IMP_LO_FALSE	=> '%s imp %s is false';
 
-sub ok_imp;
-sub ok_IMP;
-sub not_ok_imp;
-sub not_ok_IMP;
+sub ok_imp_hi;
+sub ok_imp_lo;
+sub not_ok_imp_hi;
+sub not_ok_imp_lo;
 
 # Truth table
-ok_imp 0, 0;
-ok_imp 0, 1;
-not_ok_imp 1, 0;
-ok_imp 1, 1;
-ok_IMP 0, 0;
-ok_IMP 0, 1;
-not_ok_IMP 1, 0;
-ok_IMP 1, 1;
+ok_imp_hi 0, 0;
+ok_imp_hi 0, 1;
+not_ok_imp_hi 1, 0;
+ok_imp_hi 1, 1;
+ok_imp_lo 0, 0;
+ok_imp_lo 0, 1;
+not_ok_imp_lo 1, 0;
+ok_imp_lo 1, 1;
 
 done_testing;
 
-sub not_ok_imp {
+sub not_ok_imp_hi {
+    my ( $lhs, $rhs ) = @_;
+    my $ctx = context;
+    my $rslt = $ctx->ok( ! ( $lhs ==>> $rhs ),
+	title( TPLT_IMP_HI_FALSE, $lhs, $rhs ) );
+    $ctx->release();
+    return $rslt;
+}
+
+sub not_ok_imp_lo {
     my ( $lhs, $rhs ) = @_;
     my $ctx = context;
     my $rslt = $ctx->ok( ! ( $lhs imp $rhs ),
-	title( TPLT_IMP_L_FALSE, $lhs, $rhs ) );
+	title( TPLT_IMP_LO_FALSE, $lhs, $rhs ) );
     $ctx->release();
     return $rslt;
 }
 
-sub not_ok_IMP {
+sub ok_imp_hi {
     my ( $lhs, $rhs ) = @_;
     my $ctx = context;
-    my $rslt = $ctx->ok( ! ( $lhs IMP $rhs ),
-	title( TPLT_IMP_U_FALSE, $lhs, $rhs ) );
+    my $rslt = $ctx->ok( $lhs ==>> $rhs,
+	title( TPLT_IMP_HI_TRUE, $lhs, $rhs ) );
     $ctx->release();
     return $rslt;
 }
 
-sub ok_imp {
+sub ok_imp_lo {
     my ( $lhs, $rhs ) = @_;
     my $ctx = context;
-    my $rslt = $ctx->ok( $lhs imp $rhs,
-	title( TPLT_IMP_L_TRUE, $lhs, $rhs ) );
-    $ctx->release();
-    return $rslt;
-}
-
-sub ok_IMP {
-    my ( $lhs, $rhs ) = @_;
-    my $ctx = context;
-    my $rslt = $ctx->ok( ( $lhs IMP $rhs ),
-	title( TPLT_IMP_U_TRUE, $lhs, $rhs ) );
+    my $rslt = $ctx->ok( ( $lhs imp $rhs ),
+	title( TPLT_IMP_LO_TRUE, $lhs, $rhs ) );
     $ctx->release();
     return $rslt;
 }

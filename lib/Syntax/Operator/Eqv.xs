@@ -73,13 +73,13 @@ static OP *pp_EQV(pTHX) {
     RETURN;
 }
 
-static OP *pp_imp( pTHX ) {
+static OP *pp_imp_hi( pTHX ) {
     GET_POP_RL;
     SETs( compute_imp( aTHX_ left, right ) );
     RETURN;
 }
 
-static OP *pp_IMP( pTHX ) {
+static OP *pp_imp_lo( pTHX ) {
     GET_POP_RL;
     SETs( compute_imp( aTHX_ left, right ) );
     RETURN;
@@ -96,15 +96,15 @@ static const struct XSParseInfixHooks hooks_EQV = {
     .ppaddr		= &pp_EQV,
 };
 
-static const struct XSParseInfixHooks hooks_imp = {
+static const struct XSParseInfixHooks hooks_imp_hi = {
     .cls		= XPI_CLS_LOGICAL_OR_MISC,
     .wrapper_func_name	= "Syntax::Operator::Eqv::implies",
-    .ppaddr		= &pp_imp,
+    .ppaddr		= &pp_imp_hi,
 };
 
-static const struct XSParseInfixHooks hooks_IMP = {
+static const struct XSParseInfixHooks hooks_imp_lo = {
     .cls		= XPI_CLS_LOGICAL_OR_MISC,
-    .ppaddr		= &pp_IMP,
+    .ppaddr		= &pp_imp_lo,
 };
 
 MODULE = Syntax::Operator::Eqv	PACKAGE = Syntax::Operator::Eqv
@@ -114,5 +114,7 @@ BOOT:
 
     register_xs_parse_infix( "Syntax::Operator::Eqv::eqv", &hooks_eqv, NULL );
     register_xs_parse_infix( "Syntax::Operator::Eqv::EQV", &hooks_EQV, NULL );
-    register_xs_parse_infix( "Syntax::Operator::Eqv::imp", &hooks_imp, NULL );
-    register_xs_parse_infix( "Syntax::Operator::Eqv::IMP", &hooks_IMP, NULL );
+    register_xs_parse_infix( "Syntax::Operator::Eqv::==>>",
+	&hooks_imp_hi, NULL );
+    register_xs_parse_infix( "Syntax::Operator::Eqv::imp",
+	&hooks_imp_lo, NULL );
