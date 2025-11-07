@@ -35,6 +35,13 @@ static SV *compute_eqv( pTHX_ SV *left, SV *right ) {
     return lv && rv || ! lv && ! rv ? &PL_sv_yes : &PL_sv_no;
 }
 
+static SV *compute_imp( pTHX_ SV *left, SV *right ) {
+    bool lv = SvTRUEx( left );
+    bool rv = SvTRUEx( right );
+    return ! lv || rv ? &PL_sv_yes : &PL_sv_no;
+}
+
+
 /* Get the right and left operands, popping the left one off the stack.
  * The right operand is left on the stack, to be replaced by the result
  * of the operation. This is equivalent to 'dSP' followed by
@@ -66,6 +73,17 @@ static OP *pp_EQV(pTHX) {
     RETURN;
 }
 
+static OP *pp_imp( pTHX ) {
+    GET_POP_RL;
+    SETs( compute_imp( aTHX_ left, right ) );
+    RETURN;
+}
+
+static OP *pp_IMP( pTHX ) {
+    GET_POP_RL;
+    SETs( compute_imp( aTHX_ left, right ) );
+    RETURN;
+}
 
 static const struct XSParseInfixHooks hooks_eqv = {
     .cls		= XPI_CLS_LOGICAL_OR_MISC,
@@ -78,6 +96,17 @@ static const struct XSParseInfixHooks hooks_EQV = {
     .ppaddr		= &pp_EQV,
 };
 
+static const struct XSParseInfixHooks hooks_imp = {
+    .cls		= XPI_CLS_LOGICAL_OR_MISC,
+    .wrapper_func_name	= "Syntax::Operator::Eqv::is_imp",
+    .ppaddr		= &pp_imp,
+};
+
+static const struct XSParseInfixHooks hooks_IMP = {
+    .cls		= XPI_CLS_LOGICAL_OR_MISC,
+    .ppaddr		= &pp_IMP,
+};
+
 MODULE = Syntax::Operator::Eqv	PACKAGE = Syntax::Operator::Eqv
 
 BOOT:
@@ -85,3 +114,5 @@ BOOT:
 
     register_xs_parse_infix( "Syntax::Operator::Eqv::eqv", &hooks_eqv, NULL );
     register_xs_parse_infix( "Syntax::Operator::Eqv::EQV", &hooks_EQV, NULL );
+    register_xs_parse_infix( "Syntax::Operator::Eqv::imp", &hooks_imp, NULL );
+    register_xs_parse_infix( "Syntax::Operator::Eqv::IMP", &hooks_IMP, NULL );

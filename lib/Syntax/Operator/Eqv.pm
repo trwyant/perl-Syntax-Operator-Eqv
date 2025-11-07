@@ -40,7 +40,7 @@ sub unimport_from {			## no critic (RequireArgUnpacking)
     return;
 }
 
-my @all_infix = qw{ eqv EQV };
+my @all_infix = qw{ eqv EQV imp IMP };
 
 sub apply {
     my ( $pkg, $on, $caller, @syms ) = @_;
@@ -49,7 +49,7 @@ sub apply {
     $pkg->XS::Parse::Infix::apply_infix( $on, \@syms, @all_infix );
     my %syms = map { $_ => 1 } @syms;
     my $caller_pkg;
-    foreach ( qw( is_eqv ) ) {
+    foreach ( qw( is_eqv is_imp ) ) {
 	next unless delete $syms{$_};
 	$caller_pkg //= meta::package->get( $caller );
 	$on ? $caller_pkg->add_symbol( '&'.$_ => \&{$_} )
@@ -65,39 +65,98 @@ __END__
 
 =head1 NAME
 
-Syntax::Operator::Eqv - Implement infix Boolean equivalence operator
+Syntax::Operator::Eqv - Implement infix Boolean equivalence and implication operators
 
 =head1 SYNOPSIS
 
  use Syntax::Operator::Eqv
  
  say '$x and $y are either both true or both false' if $x eqv $y;
+ say 'Either $x is false or $y is true' if $x imp $y;
 
 =head1 DESCRIPTION
 
-This Perl module implements an infix Boolean equivalence operator, which
-returns a true value if the operands are either both true or both false.
+This Perl module implements two infix Boolean operators, C<eqv> (logical
+equivalence) and C<imp> (logical implication) which I have previously
+encountered only in Algol 60.
+
+In addition this module provides wrapper functions for the operators.
+
+B<Note> that while this module can be installed as far back as Perl
+v5.14, the infix operators can not be used until Perl v5.38.
 
 =head1 OPERATORS
 
 =head2 eqv
 
-This Boolean operator evaluates to a true value if its operands are
-either both true or both false. It is imported by default. See
-L<is_eqv()|/is_eqv>, below, for the equivalent function.
+This Boolean operator computes logical equivalence.
+
+Truth table:
+
+        Right
+       operand
+   o
+   p    | T | F
+ L e  --+---+---
+ e r  T | T | F
+ f a  --+---+---
+ t n  F | F | T
+   d
+
+That is, the operator returns a true value if its operands are both true
+or both false, and a false value otherwise.
+
+This operator binds equivalently to the Boolean or operator C<'||'>. In
+Algol it binds more loosely than 'or', but as far as I can tell the Perl
+operator plug-in mechanism does not allow the addition of new binding
+strengths.
 
 The default spelling of this operator is C<'eqv'>. If you would prefer
 a different spelling, you can do an explicit import:
 
  use Syntax::Operator::Eqv eqv => { -as => 'equivalent_to' };
 
-This operator binds equivalently to C<'||'>.
-
 This operator is exported by default.
 
 =head2 EQV
 
 This Boolean operator performs the same function as L<eqv|/eqv>, but
+binds more loosely.
+
+This operator binds equivalently to C<'or'>.
+
+This operator is exported by default.
+
+=head2 imp
+
+This Boolean operator computes logical implication.
+
+Truth table:
+
+        Right
+       operand
+   o
+   p    | T | F
+ L e  --+---+---
+ e r  T | T | F
+ f a  --+---+---
+ t n  F | T | T
+   d
+
+That is, the operator returns a true value if its left operand is false
+or its right operand is true. This behavior follows from the fact that a
+false proposition implies any proposition.
+
+This operator binds equivalently to the Boolean or operator C<'||'>. In
+Algol it binds more loosely than L<eqv|/eqv>, but as far as I can tell
+the Perl operator plug-in mechanism does not allow the addition of new
+binding strengths.
+
+This operator is exported by default.
+
+=head2 IMP
+
+This Boolean operator performs the same function as L<imp|/imp>, but
 binds more loosely.
 
 This operator binds equivalently to C<'or'>.
@@ -114,15 +173,25 @@ The following subroutines are exportable on request.
    if is_eqv( $x, $y );
 
 This subroutine returns a true value if its operands are either both
-true or both false. It is equivalent to
+true or both false, or a false value otherwise. It is equivalent to
 
  sub is_eqv( $x, $y ) { $x && $y || ! $x && ! $y }
 
-B<Note> that this subroutine does B<not> provide scalar context to its
-arguments. If you want to test the occupancy of an array, for instance,
-you must use C<scalar()> explicitly:
+but under suitable conditions can be inlined.
 
- if ( is_eqv( $empty_p, scalar @array ) ) { ... }
+This subroutine is exportable, but it is not exported by default.
+
+=head2 is_imp
+
+ say '$x imples $y'
+   if is_imp( $x, $y );
+
+This subroutine returns a false value if its left operand is true and
+its right operand false, or a true value otherwise. It is equivalent to
+
+ sub is_imp( $x, $y ) { ! $x || $y }
+
+but under suitable conditions can be inlined.
 
 This subroutine is exportable, but it is not exported by default.
 
