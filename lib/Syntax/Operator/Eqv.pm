@@ -40,11 +40,11 @@ sub unimport_from {			## no critic (RequireArgUnpacking)
     return;
 }
 
-my @all_infix = qw{ eqv EQV ==>> imp };
+my @all_infix = qw{ <==> eqv ==>> imp };
 
 sub apply {
     my ( $pkg, $on, $caller, @syms ) = @_;
-    # state @all_infix = qw( eqv ≍ ); # ≍ is EQUIVALENT TO, U+224D
+    # state @all_infix = qw( <==> ≍ ); # ≍ is EQUIVALENT TO, U+224D
     @syms or @syms = @all_infix;
     $pkg->XS::Parse::Infix::apply_infix( $on, \@syms, @all_infix );
     my %syms = map { $_ => 1 } @syms;
@@ -71,7 +71,7 @@ Syntax::Operator::Eqv - Implement infix Boolean equivalence and implication oper
 
  use Syntax::Operator::Eqv
  
- say '$x and $y are either both true or both false' if $x eqv $y;
+ say '$x and $y are either both true or both false' if $x <==> $y;
  say 'Either $x is false or $y is true' if $x imp $y;
 
 =head1 DESCRIPTION
@@ -87,7 +87,7 @@ v5.14, the infix operators can not be used until Perl v5.38.
 
 =head1 OPERATORS
 
-=head2 eqv
+=head2 <==>
 
 This Boolean operator computes logical equivalence.
 
@@ -111,17 +111,17 @@ Algol it binds more loosely than 'or', but as far as I can tell the Perl
 operator plug-in mechanism does not allow the addition of new binding
 strengths.
 
-The default spelling of this operator is C<'eqv'>. If you would prefer
+The default spelling of this operator is C<'<==>'>. If you would prefer
 a different spelling, you can do an explicit import:
 
- use Syntax::Operator::Eqv eqv => { -as => 'equivalent_to' };
+ use Syntax::Operator::Eqv '<==>' => { -as => 'is_equivalent_to' };
 
 This operator is exported by default.
 
-=head2 EQV
+=head2 eqv
 
-This Boolean operator performs the same function as L<eqv|/eqv>, but
-binds more loosely.
+This Boolean operator performs the same function as L<< <==>|/<==> >>,
+but binds more loosely.
 
 This operator binds equivalently to C<'or'>.
 
@@ -148,9 +148,9 @@ or its right operand is true. This behavior follows from the fact that a
 false proposition implies any proposition.
 
 This operator binds equivalently to the Boolean or operator C<'||'>. In
-Algol it binds more loosely than L<eqv|/eqv>, but as far as I can tell
-the Perl operator plug-in mechanism does not allow the addition of new
-binding strengths.
+Algol it binds more loosely than L<< <==>|/<==> >>, but as far as I can
+tell the Perl operator plug-in mechanism does not allow the addition of
+new binding strengths.
 
 This operator is exported by default.
 

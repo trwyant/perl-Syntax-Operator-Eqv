@@ -56,18 +56,18 @@ static SV *compute_imp( pTHX_ SV *left, SV *right ) {
     SV *right = POPs; \
     SV *left  = TOPs
 
-/* NOTE that pp_eqv() and pp_EQV() do exactly the same thing. I need
- * them both to ensure that B::Deparse picks the right operator name,
- * because the eqv and EQV operators, though they do the same thing,
- * have different precedence. */
+/* NOTE that pp_eqv_hi() and pp_eqv_lo() do exactly the same thing. I
+ * need them both to ensure that B::Deparse picks the right operator
+ * name, because the <==> and eqv operators, though they do the same
+ * thing, have different precedence. */
 
-static OP *pp_eqv(pTHX) {
+static OP *pp_eqv_hi( pTHX ) {
     GET_POP_RL;
     SETs( compute_eqv( aTHX_ left, right ) );
     RETURN;
 }
 
-static OP *pp_EQV(pTHX) {
+static OP *pp_eqv_lo( pTHX ) {
     GET_POP_RL;
     SETs( compute_eqv( aTHX_ left, right ) );
     RETURN;
@@ -85,15 +85,15 @@ static OP *pp_imp_lo( pTHX ) {
     RETURN;
 }
 
-static const struct XSParseInfixHooks hooks_eqv = {
+static const struct XSParseInfixHooks hooks_eqv_hi = {
     .cls		= XPI_CLS_LOGICAL_OR_MISC,
     .wrapper_func_name	= "Syntax::Operator::Eqv::equivalent",
-    .ppaddr		= &pp_eqv,
+    .ppaddr		= &pp_eqv_hi,
 };
 
-static const struct XSParseInfixHooks hooks_EQV = {
+static const struct XSParseInfixHooks hooks_eqv_lo = {
     .cls		= XPI_CLS_LOGICAL_OR_LOW_MISC,
-    .ppaddr		= &pp_EQV,
+    .ppaddr		= &pp_eqv_lo,
 };
 
 static const struct XSParseInfixHooks hooks_imp_hi = {
@@ -112,8 +112,10 @@ MODULE = Syntax::Operator::Eqv	PACKAGE = Syntax::Operator::Eqv
 BOOT:
     boot_xs_parse_infix( 0.44 );
 
-    register_xs_parse_infix( "Syntax::Operator::Eqv::eqv", &hooks_eqv, NULL );
-    register_xs_parse_infix( "Syntax::Operator::Eqv::EQV", &hooks_EQV, NULL );
+    register_xs_parse_infix( "Syntax::Operator::Eqv::<==>",
+	&hooks_eqv_hi, NULL );
+    register_xs_parse_infix( "Syntax::Operator::Eqv::eqv",
+	&hooks_eqv_lo, NULL );
     register_xs_parse_infix( "Syntax::Operator::Eqv::==>>",
 	&hooks_imp_hi, NULL );
     register_xs_parse_infix( "Syntax::Operator::Eqv::imp",
