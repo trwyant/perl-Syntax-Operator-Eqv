@@ -87,7 +87,7 @@ static OP *pp_imp_lo( pTHX ) {
 
 static const struct XSParseInfixHooks hooks_eqv = {
     .cls		= XPI_CLS_LOGICAL_OR_MISC,
-    .wrapper_func_name	= "Syntax::Operator::Eqv::is_eqv",
+    .wrapper_func_name	= "Syntax::Operator::Eqv::equivalent",
     .ppaddr		= &pp_eqv,
 };
 

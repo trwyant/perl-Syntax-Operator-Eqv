@@ -49,7 +49,7 @@ sub apply {
     $pkg->XS::Parse::Infix::apply_infix( $on, \@syms, @all_infix );
     my %syms = map { $_ => 1 } @syms;
     my $caller_pkg;
-    foreach ( qw( is_eqv implies ) ) {
+    foreach ( qw( equivalent implies ) ) {
 	next unless delete $syms{$_};
 	$caller_pkg //= meta::package->get( $caller );
 	$on ? $caller_pkg->add_symbol( '&'.$_ => \&{$_} )
@@ -167,15 +167,15 @@ This operator is exported by default.
 
 The following subroutines are exportable on request.
 
-=head2 is_eqv
+=head2 equivalent
 
  say '$x and $y are either both true or both false'
-   if is_eqv( $x, $y );
+   if equivalent( $x, $y );
 
 This subroutine returns a true value if its operands are either both
 true or both false, or a false value otherwise. It is equivalent to
 
- sub is_eqv( $x, $y ) { $x && $y || ! $x && ! $y }
+ sub equivalent( $x, $y ) { $x && $y || ! $x && ! $y }
 
 but under suitable conditions can be inlined.
 

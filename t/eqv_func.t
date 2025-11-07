@@ -6,13 +6,13 @@ use strict;
 use warnings;
 
 use Test2::V0;
-use Syntax::Operator::Eqv qw{ is_eqv };
+use Syntax::Operator::Eqv qw{ equivalent };
 
 use lib qw{ inc };
 use My::Module::Test qw{ title };
 
-use constant TPLT_TRUE	=> 'is_eqv( %s, %s ) is true';
-use constant TPLT_FALSE	=> 'is_eqv( %s, %s ) is false';
+use constant TPLT_TRUE	=> 'equivalent( %s, %s ) is true';
+use constant TPLT_FALSE	=> 'equivalent( %s, %s ) is false';
 
 sub ok_eqv;
 sub not_ok_eqv;
@@ -29,7 +29,7 @@ ok_eqv 1, 2;
 ok_eqv 42, 'answer';
 ok_eqv 1, \0;
 ok_eqv 2, [];
-ok_eqv {}, \&is_eqv;
+ok_eqv {}, \&equivalent;
 not_ok_eqv 0, '0 but true';
 
 =begin comment
@@ -51,10 +51,10 @@ not_ok_eqv 0, '0 but true';
 {
     my $warnings = warnings {
 	no warnings qw{ uninitialized };
-	# NOTE can't use ok_eqv here because the call to is_eqv must be
+	# NOTE can't use ok_eqv here because the call to equivalent must be
 	# in the scope of the 'no warnings ...';
 	my ( $lhs, $rhs ) = ( 0 );
-	ok is_eqv( $lhs, $rhs ), title( TPLT_TRUE, $lhs, $rhs );
+	ok equivalent( $lhs, $rhs ), title( TPLT_TRUE, $lhs, $rhs );
     };
     is @$warnings, 0,
 	q/Got no warnings under "no warnings 'uninitialized';/
@@ -70,7 +70,7 @@ done_testing;
 sub not_ok_eqv {
     my ( $lhs, $rhs ) = @_;
     my $ctx = context;
-    my $rslt = $ctx->ok( ! is_eqv( $lhs, $rhs ),
+    my $rslt = $ctx->ok( ! equivalent( $lhs, $rhs ),
 	title( TPLT_FALSE, $lhs, $rhs ) );
     $ctx->release();
     return $rslt;
@@ -79,7 +79,7 @@ sub not_ok_eqv {
 sub ok_eqv {
     my ( $lhs, $rhs ) = @_;
     my $ctx = context;
-    my $rslt = $ctx->ok( is_eqv( $lhs, $rhs ),
+    my $rslt = $ctx->ok( equivalent( $lhs, $rhs ),
 	title( TPLT_TRUE, $lhs, $rhs ) );
     $ctx->release();
     return $rslt;
