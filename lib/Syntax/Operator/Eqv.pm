@@ -49,7 +49,7 @@ sub apply {
     $pkg->XS::Parse::Infix::apply_infix( $on, \@syms, @all_infix );
     my %syms = map { $_ => 1 } @syms;
     my $caller_pkg;
-    foreach ( qw( is_eqv is_imp ) ) {
+    foreach ( qw( is_eqv implies ) ) {
 	next unless delete $syms{$_};
 	$caller_pkg //= meta::package->get( $caller );
 	$on ? $caller_pkg->add_symbol( '&'.$_ => \&{$_} )
@@ -181,15 +181,15 @@ but under suitable conditions can be inlined.
 
 This subroutine is exportable, but it is not exported by default.
 
-=head2 is_imp
+=head2 implies
 
  say '$x imples $y'
-   if is_imp( $x, $y );
+   if implies( $x, $y );
 
 This subroutine returns a false value if its left operand is true and
 its right operand false, or a true value otherwise. It is equivalent to
 
- sub is_imp( $x, $y ) { ! $x || $y }
+ sub implies( $x, $y ) { ! $x || $y }
 
 but under suitable conditions can be inlined.
 

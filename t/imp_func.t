@@ -6,13 +6,13 @@ use strict;
 use warnings;
 
 use Test2::V0;
-use Syntax::Operator::Eqv qw{ is_imp };
+use Syntax::Operator::Eqv qw{ implies };
 
 use lib qw{ inc };
 use My::Module::Test qw{ title };
 
-use constant TPLT_TRUE	=> 'is_imp( %s, %s ) is true';
-use constant TPLT_FALSE	=> 'is_imp( %s, %s ) is false';
+use constant TPLT_TRUE	=> 'implies( %s, %s ) is true';
+use constant TPLT_FALSE	=> 'implies( %s, %s ) is false';
 
 sub ok_imp;
 sub not_ok_imp;
@@ -28,7 +28,7 @@ done_testing;
 sub not_ok_imp {
     my ( $lhs, $rhs ) = @_;
     my $ctx = context;
-    my $rslt = $ctx->ok( ! is_imp( $lhs, $rhs ),
+    my $rslt = $ctx->ok( ! implies( $lhs, $rhs ),
 	title( TPLT_FALSE, $lhs, $rhs ) );
     $ctx->release();
     return $rslt;
@@ -37,7 +37,7 @@ sub not_ok_imp {
 sub ok_imp {
     my ( $lhs, $rhs ) = @_;
     my $ctx = context;
-    my $rslt = $ctx->ok( is_imp( $lhs, $rhs ),
+    my $rslt = $ctx->ok( implies( $lhs, $rhs ),
 	title( TPLT_TRUE, $lhs, $rhs ) );
     $ctx->release();
     return $rslt;

@@ -98,7 +98,7 @@ static const struct XSParseInfixHooks hooks_EQV = {
 
 static const struct XSParseInfixHooks hooks_imp = {
     .cls		= XPI_CLS_LOGICAL_OR_MISC,
-    .wrapper_func_name	= "Syntax::Operator::Eqv::is_imp",
+    .wrapper_func_name	= "Syntax::Operator::Eqv::implies",
     .ppaddr		= &pp_imp,
 };
 
