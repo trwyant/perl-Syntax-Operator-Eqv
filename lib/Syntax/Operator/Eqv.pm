@@ -42,16 +42,45 @@ sub unimport_from {			## no critic (RequireArgUnpacking)
     return;
 }
 
-my @all_infix = qw{ <==> eqv ==>> imp };
-
 sub apply {
-    my ( $pkg, $on, $caller, @syms ) = @_;
-    # state @all_infix = qw( <==> ≍ ); # ≍ is EQUIVALENT TO, U+224D
-    @syms or @syms = @all_infix;
-    $pkg->XS::Parse::Infix::apply_infix( $on, \@syms, @all_infix );
+    my ( $pkg, $on, $caller, @args ) = @_;
+
+    state $export_infix_ok = [ qw{ <==> eqv ==>> imp } ];
+    state $export_ok = [ qw{ equivalent implies } ];
+    state $export = $export_infix_ok;
+    state $export_tags = {
+	all	=> [ @{ $export_infix_ok }, @{ $export_ok } ],
+	dflt	=> $export,
+	eqv	=> [ qw{ <==> eqv equivalent } ],
+	imp	=> [ qw{ ==>> imp implies } ],
+	infix	=> $export_infix_ok,
+	wrap	=> $export_ok,
+    };
+
+    my @syms;
+    {
+	my %have;
+	while ( @args ) {
+	    local $_ = shift @args;
+	    if ( s/ \A : //smx ) {
+		croak "'$_' is not a defined export tag"
+		    unless $export_tags->{$_};
+		croak "Export tag '$_' may not be followed by options"
+		    if ref $args[0] eq REF_HASH;
+		foreach ( @{ $export_tags->{$_} } ) {
+		    push @syms, $_ unless $have{$_}++;
+		}
+	    } else {
+		push @syms, $_ unless $have{$_}++;
+		push @syms, shift @args if ref( $args[0] ) eq REF_HASH;
+	    }
+	}
+    }
+    @syms = @{ $export } unless @syms;
+    $pkg->XS::Parse::Infix::apply_infix( $on, \@syms, @{ $export_infix_ok } );
 
     my $caller_pkg;
-    my %export_ok = map { $_ => 1 } qw{ equivalent implies };
+    my %xok = map { $_ => 1 } @{ $export_ok };
     my @unrecognized;
     while ( @syms ) {
 	my $symbol = shift @syms;
@@ -60,7 +89,7 @@ sub apply {
 	my $alias = delete( $opt{ '-as' } ) // $symbol;
 	croak 'Unrecognized import options ', join ', ', sort keys %opt
 	    if keys %opt;
-	if ( $export_ok{$symbol} ) {
+	if ( $xok{$symbol} ) {
 	    $caller_pkg //= meta::package->get( $caller );
 	    $on ? $caller_pkg->add_symbol( "&$alias" => \&{$symbol} )
 		: $caller_pkg->remove_symbol( "&$alias" );
@@ -101,22 +130,6 @@ v5.14, the infix operators can not be used until Perl v5.38.
 
 =head1 OPERATORS
 
-All operators are imported by default. If you do not want all of them,
-you can specify the ones you do want in the import list. If you do not
-like the way I have spelled an operator name you can import it under the
-name you prefer by following the original operator name in the import
-list with a reference to a hash containing key C<'-as'> whose value is
-your preferred name. For example, after
-
- use Syntax::Operator::Equ '<==>' => { -as => '(=)' };
-
-the Perl compiler will recognize C<'(=)'> as the high-precedence
-equivalence operator, not '<==>'.
-
-Operator names are imported lexically. If the above example is done
-inside a block, the name of the operator will revert to C<'<==>'> on
-block exit.
-
 The following operators are available:
 
 =head2 <==>
@@ -126,14 +139,13 @@ This Boolean operator computes logical equivalence.
 Truth table:
 
         Right
-       operand
-   o
-   p    | T | F
- L e  --+---+---
- e r  T | T | F
- f a  --+---+---
- t n  F | F | T
-   d
+   o   operand
+   p
+ L e    | T | F
+ e r  --+---+---
+ f a  T | T | F
+ t n  --+---+---
+   d  F | F | T
 
 That is, the operator returns a true value if its operands are both true
 or both false, and a false value otherwise.
@@ -157,14 +169,13 @@ This Boolean operator computes logical implication.
 Truth table:
 
         Right
-       operand
-   o
-   p    | T | F
- L e  --+---+---
- e r  T | T | F
- f a  --+---+---
- t n  F | T | T
-   d
+   o   operand
+   p
+ L e    | T | F
+ e r  --+---+---
+ f a  T | T | F
+ t n  --+---+---
+   d  F | T | T
 
 That is, the operator returns a true value if its left operand is false
 or its right operand is true. This behavior follows from the fact that a
@@ -183,15 +194,8 @@ This operator has the same precedence as C<'or'>.
 =head1 SUBROUTINES
 
 In addition to infix operators, this package provides equivalent wrapper
-functions. These must be explicitly imported. Under suitable conditions
-(meaning that the operands are not too complex) the wrapper functions
-can be inlined.
-
-You can specify a different name for the wrapper function when you
-import it, using the same mechanism as for infix operators.
-
-B<Unlike> the infix operators, wrapper function names are imported into
-your name space. For the moment.
+functions. Under suitable conditions (meaning that the operands are not
+too complex) the wrapper functions can be inlined.
 
 The following wrapper functions are available:
 
@@ -208,6 +212,48 @@ This function wraps L<< <==>|/<==> >> and performs the same computation.
    if implies( $x, $y );
 
 This function wraps L<< ==>>|/==>> >> and performs the same computation.
+
+=head1 EXPORTS
+
+All operators and wrapper functions are exportable. The operators are
+exported by default. B<Note> that operator exports are lexical, but
+wrapper function exports are global. Both can be explicitly removed
+using
+
+ no Syntax::Operator::Eqv ...;
+
+If you do not like the way any export is spelled, you can rename it by
+following it with a hash reference of the form C<< { -as => 'newname' } >>.
+For example,
+
+ use Syncax::Operator::Eqv eqv { -as => 'is_equivalent_to' }
+
+In addition, export tags are supported. Tags may not be followed by a
+hash reference. The supported export tags are:
+
+=head2 :all
+
+Import everything,
+
+=head2 :dflt
+
+Import whatever is exported by default.
+
+=head2 :eqv
+
+Import all logical equivalence operators, plus the wrapper function.
+
+=head2 :imp
+
+Import all logical implication operators, plus the wrapper function.
+
+=head2 :infix
+
+Import all infix operators.
+
+=head2 wrap
+
+Import all wrapper functions.
 
 =head1 SEE ALSO
 

@@ -8,7 +8,7 @@ use warnings;
 use utf8;
 
 use Test2::V0;
-use Syntax::Operator::Eqv;
+use Syntax::Operator::Eqv qw{ :eqv };
 
 BEGIN {
     plan skip_all => "No PL_infix_plugin"
