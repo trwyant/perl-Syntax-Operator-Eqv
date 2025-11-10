@@ -184,6 +184,10 @@ false proposition implies any proposition.
 This operator has the same precedence as the Boolean or operator
 C<'||'>. In Algol it has a lower precedence than logical equivalence.
 
+I admit that I had not originally anticipated implementing this
+operator. But its asymmetric truth table meant that I could test whether
+I had reversed the right and left operands in the F<.xs> code.
+
 =head2 imp
 
 This Boolean operator performs the same function as L<< ==>>|/==>> >>,

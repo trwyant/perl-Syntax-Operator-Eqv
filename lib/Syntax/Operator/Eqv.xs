@@ -56,10 +56,10 @@ static SV *compute_imp( pTHX_ SV *left, SV *right ) {
     SV *right = POPs; \
     SV *left  = TOPs
 
-/* NOTE that pp_eqv_hi() and pp_eqv_lo() do exactly the same thing. I
- * need them both to ensure that B::Deparse picks the right operator
- * name, because the <==> and eqv operators, though they do the same
- * thing, have different precedence. */
+/* NOTE that all the pp_eqv* subroutines do the same thing, as do all
+ * the pp_imp* subroutines. This duplication is the only way I can
+ * figure out to get B::Deparse to select the correct operator.
+ */
 
 static OP *pp_eqv_hi( pTHX ) {
     GET_POP_RL;
