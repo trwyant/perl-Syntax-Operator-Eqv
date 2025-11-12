@@ -112,7 +112,7 @@ MODULE = Syntax::Operator::Eqv	PACKAGE = Syntax::Operator::Eqv
 BOOT:
     boot_xs_parse_infix( 0.44 );
 
-    register_xs_parse_infix( "Syntax::Operator::Eqv::<==>",
+    register_xs_parse_infix( "Syntax::Operator::Eqv::(==)",
 	&hooks_eqv_hi, NULL );
     register_xs_parse_infix( "Syntax::Operator::Eqv::eqv",
 	&hooks_eqv_lo, NULL );

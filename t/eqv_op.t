@@ -18,8 +18,8 @@ BEGIN {
 use lib qw{ inc };
 use My::Module::Test qw{ title };
 
-use constant TPLT_EQV_HI_TRUE	=> '%s <==> %s is true';
-use constant TPLT_EQV_HI_FALSE	=> '%s <==> %s is false';
+use constant TPLT_EQV_HI_TRUE	=> '%s (==) %s is true';
+use constant TPLT_EQV_HI_FALSE	=> '%s (==) %s is false';
 use constant TPLT_EQV_LO_TRUE	=> '%s eqv %s is true';
 use constant TPLT_EQV_LO_FALSE	=> '%s eqv %s is false';
 
@@ -39,8 +39,8 @@ not_ok_eqv_lo 1, 0;
 ok_eqv_lo 1, 1;
 
 # Binding strength
-ok 0 <==> 0 && 0, '&& binds more tightly than <==>';
-ok( ! ( 0 <==> 1 and 0 ), 'and binds more loosely than <==>' );
+ok 0 (==) 0 && 0, '&& binds more tightly than (==)';
+ok( ! ( 0 (==) 1 and 0 ), 'and binds more loosely than (==)' );
 ok( ( 0 eqv 0 and 0 ), 'and binds more tightly than eqv' );
 #
 # Other stuff
@@ -54,11 +54,11 @@ not_ok_eqv_hi 0, '0 but true';
 {
     my @left;
     my @right;
-    ok @left <==> @right, 'Empty arrays are equivalent';
+    ok @left (==) @right, 'Empty arrays are equivalent';
     @left = ( 'A' );
-    ok ! ( @left <==> @right ), 'Non-empty array not equivalent to empty array';
+    ok ! ( @left (==) @right ), 'Non-empty array not equivalent to empty array';
     @right = qw{ alpha beta };
-    ok @left <==> @right, 'Non-empty arrays are equivalent';
+    ok @left (==) @right, 'Non-empty arrays are equivalent';
 
 }
 
@@ -81,10 +81,10 @@ not_ok_eqv_hi 0, '0 but true';
 {
     my $warnings = warnings {
 	no warnings qw{ uninitialized };
-	# NOTE can't use ok_eqv_hi here because the <==> operation must be
+	# NOTE can't use ok_eqv_hi here because the (==) operation must be
 	# in the scope of the 'no warnings ...';
 	my ( $lhs, $rhs ) = ( 0 );
-	ok $lhs <==> $rhs, title( TPLT_EQV_HI_TRUE, $lhs, $rhs );
+	ok $lhs (==) $rhs, title( TPLT_EQV_HI_TRUE, $lhs, $rhs );
     };
     is @$warnings, 0,
 	q/Got no warnings under "no warnings 'uninitialized';/
@@ -100,7 +100,7 @@ done_testing;
 sub not_ok_eqv_hi {
     my ( $lhs, $rhs ) = @_;
     my $ctx = context;
-    my $rslt = $ctx->ok( ! ( $lhs <==> $rhs ),
+    my $rslt = $ctx->ok( ! ( $lhs (==) $rhs ),
 	title( TPLT_EQV_HI_FALSE, $lhs, $rhs ) );
     $ctx->release();
     return $rslt;
@@ -118,7 +118,7 @@ sub not_ok_eqv_lo {
 sub ok_eqv_hi {
     my ( $lhs, $rhs ) = @_;
     my $ctx = context;
-    my $rslt = $ctx->ok( $lhs <==> $rhs,
+    my $rslt = $ctx->ok( $lhs (==) $rhs,
 	title( TPLT_EQV_HI_TRUE, $lhs, $rhs ) );
     $ctx->release();
     return $rslt;

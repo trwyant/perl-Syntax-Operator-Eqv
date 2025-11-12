@@ -45,13 +45,13 @@ sub unimport_from {			## no critic (RequireArgUnpacking)
 sub apply {
     my ( $pkg, $on, $caller, @args ) = @_;
 
-    state $export_infix_ok = [ qw{ <==> eqv ==>> imp } ];
+    state $export_infix_ok = [ qw{ (==) eqv ==>> imp } ];
     state $export_ok = [ qw{ equivalent implies } ];
     state $export = $export_infix_ok;
     state $export_tags = {
 	all	=> [ @{ $export_infix_ok }, @{ $export_ok } ],
 	dflt	=> $export,
-	eqv	=> [ qw{ <==> eqv equivalent } ],
+	eqv	=> [ qw{ (==) eqv equivalent } ],
 	imp	=> [ qw{ ==>> imp implies } ],
 	infix	=> $export_infix_ok,
 	wrap	=> $export_ok,
@@ -114,7 +114,7 @@ Syntax::Operator::Eqv - Implement infix Boolean equivalence and implication oper
 
  use Syntax::Operator::Eqv
  
- say '$x and $y are either both true or both false' if $x <==> $y;
+ say '$x and $y are either both true or both false' if $x (==) $y;
  say 'Either $x is false or $y is true' if $x imp $y;
 
 =head1 DESCRIPTION
@@ -132,7 +132,7 @@ v5.14, the infix operators can not be used until Perl v5.38.
 
 The following operators are available:
 
-=head2 <==>
+=head2 (==)
 
 This Boolean operator computes logical equivalence.
 
@@ -157,7 +157,7 @@ of new binding strengths.
 
 =head2 eqv
 
-This Boolean operator performs the same function as L<< <==>|/<==> >>,
+This Boolean operator performs the same function as L<< (==)|/(==) >>,
 but has a lower precedence.
 
 This operator has the same precedence as C<'or'>.
@@ -208,7 +208,7 @@ The following wrapper functions are available:
  say '$x and $y are either both true or both false'
    if equivalent( $x, $y );
 
-This function wraps L<< <==>|/<==> >> and performs the same computation.
+This function wraps L<< (==)|/(==) >> and performs the same computation.
 
 =head2 implies
 
