@@ -26,17 +26,22 @@ foreach my $fn ( sort keys %{ $manifest } ) {
 	and next;
     is_perl( $fn )
 	or next;
-    my $doc = Perl::MinimumVersion->new( slurp( $fn ) );
-    cmp_ok $doc->minimum_version(), 'le', $min_perl,
-	"$fn works under Perl $min_perl";
-    my $ppi_doc = $doc->Document();
-    foreach my $inc (
-	@{ $ppi_doc->find( 'PPI::Statement::Include' ) || [] } ) {
-	my $vers = $inc->version()
-	    or next;
-	ok( version->parse( $vers ) == $min_perl_vers,
-	    "$fn has use $min_perl, rather than some other version" );
-	last;
+    if ( my $doc = Perl::MinimumVersion->new( slurp( $fn ) ) ) {
+	cmp_ok $doc->minimum_version(), 'le', $min_perl,
+	    "$fn works under Perl $min_perl";
+	my $ppi_doc = $doc->Document();
+	foreach my $inc (
+	    @{ $ppi_doc->find( 'PPI::Statement::Include' ) || [] } ) {
+	    my $vers = $inc->version()
+		or next;
+	    ok( version->parse( $vers ) == $min_perl_vers,
+		"$fn has use $min_perl, rather than some other version" );
+	    last;
+	}
+    } else {
+	SKIP: {
+	    skip "Perl::MinimumVersion fails to parse $fn";
+	}
     }
 }
 

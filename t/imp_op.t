@@ -8,7 +8,7 @@ use warnings;
 use utf8;
 
 use Test2::V0;
-use Syntax::Operator::Eqv qw{ :imp };
+use Syntax::Operator::Eqv qw{ :imp ⇒⇒ };
 
 BEGIN {
     plan skip_all => "No PL_infix_plugin"
@@ -24,8 +24,10 @@ use constant TPLT_IMP_LO_TRUE	=> '%s imp %s is true';
 use constant TPLT_IMP_LO_FALSE	=> '%s imp %s is false';
 
 sub ok_imp_hi;
+sub ok_imp_hi_unicode;
 sub ok_imp_lo;
 sub not_ok_imp_hi;
+sub not_ok_imp_hi_unicode;
 sub not_ok_imp_lo;
 
 # Truth table
@@ -33,6 +35,12 @@ ok_imp_hi 0, 0;
 ok_imp_hi 0, 1;
 not_ok_imp_hi 1, 0;
 ok_imp_hi 1, 1;
+
+ok_imp_hi_unicode 0, 0;
+ok_imp_hi_unicode 0, 1;
+not_ok_imp_hi_unicode 1, 0;
+ok_imp_hi_unicode 1, 1;
+
 ok_imp_lo 0, 0;
 ok_imp_lo 0, 1;
 not_ok_imp_lo 1, 0;
@@ -44,6 +52,15 @@ sub not_ok_imp_hi {
     my ( $lhs, $rhs ) = @_;
     my $ctx = context;
     my $rslt = $ctx->ok( ! ( $lhs ==>> $rhs ),
+	title( TPLT_IMP_HI_FALSE, $lhs, $rhs ) );
+    $ctx->release();
+    return $rslt;
+}
+
+sub not_ok_imp_hi_unicode {
+    my ( $lhs, $rhs ) = @_;
+    my $ctx = context;
+    my $rslt = $ctx->ok( ! ( $lhs ⇒⇒ $rhs ),
 	title( TPLT_IMP_HI_FALSE, $lhs, $rhs ) );
     $ctx->release();
     return $rslt;
@@ -62,6 +79,15 @@ sub ok_imp_hi {
     my ( $lhs, $rhs ) = @_;
     my $ctx = context;
     my $rslt = $ctx->ok( $lhs ==>> $rhs,
+	title( TPLT_IMP_HI_TRUE, $lhs, $rhs ) );
+    $ctx->release();
+    return $rslt;
+}
+
+sub ok_imp_hi_unicode {
+    my ( $lhs, $rhs ) = @_;
+    my $ctx = context;
+    my $rslt = $ctx->ok( $lhs ⇒⇒ $rhs,
 	title( TPLT_IMP_HI_TRUE, $lhs, $rhs ) );
     $ctx->release();
     return $rslt;

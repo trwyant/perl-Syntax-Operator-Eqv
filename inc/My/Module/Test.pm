@@ -7,10 +7,11 @@ use warnings;
 
 use Carp;
 use Exporter qw{ import };
+use Test2::V0;
 
 our $VERSION = '0.000_001';
 
-our @EXPORT_OK = qw{ quote title };
+our @EXPORT_OK = qw{ false true quote title };
 
 {
     local $@ = undef;
@@ -25,6 +26,22 @@ our @EXPORT_OK = qw{ quote title };
 	};
 	1;
     } or *_my_subname = sub { 'sub { ... }' };
+}
+
+sub false {
+    my ( $ok, @info ) = @_;
+    my $ctx = context;
+    my $rslt = $ctx->ok( ! $ok, @info );
+    $ctx->release();
+    return $rslt;
+}
+
+sub true {
+    my ( $ok, @info ) = @_;
+    my $ctx = context;
+    my $rslt = $ctx->ok( $ok, @info );
+    $ctx->release();
+    return $rslt;
 }
 
 sub quote {

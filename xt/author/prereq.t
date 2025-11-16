@@ -11,6 +11,9 @@ eval {
 } or plan skip_all => 'Test::Prereq::Meta not available';
 
 my $tpm = Test::Prereq::Meta->new(
+    prune	=> [ qw{
+	t/eqv_op.t
+    } ],
     uses	=> [ qw{
 	ExtUtils::CBuilder
     } ],

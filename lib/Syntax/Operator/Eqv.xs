@@ -67,6 +67,12 @@ static OP *pp_eqv_hi( pTHX ) {
     RETURN;
 }
 
+static OP *pp_eqv_hi_unicode( pTHX ) {
+    GET_POP_RL;
+    SETs( compute_eqv( aTHX_ left, right ) );
+    RETURN;
+}
+
 static OP *pp_eqv_lo( pTHX ) {
     GET_POP_RL;
     SETs( compute_eqv( aTHX_ left, right ) );
@@ -85,10 +91,21 @@ static OP *pp_imp_lo( pTHX ) {
     RETURN;
 }
 
+static OP *pp_imp_hi_unicode( pTHX ) {
+    GET_POP_RL;
+    SETs( compute_imp( aTHX_ left, right ) );
+    RETURN;
+}
+
 static const struct XSParseInfixHooks hooks_eqv_hi = {
     .cls		= XPI_CLS_LOGICAL_OR_MISC,
     .wrapper_func_name	= "Syntax::Operator::Eqv::equivalent",
     .ppaddr		= &pp_eqv_hi,
+};
+
+static const struct XSParseInfixHooks hooks_eqv_hi_unicode = {
+    .cls		= XPI_CLS_LOGICAL_OR_MISC,
+    .ppaddr		= &pp_eqv_hi_unicode,
 };
 
 static const struct XSParseInfixHooks hooks_eqv_lo = {
@@ -100,6 +117,11 @@ static const struct XSParseInfixHooks hooks_imp_hi = {
     .cls		= XPI_CLS_LOGICAL_OR_MISC,
     .wrapper_func_name	= "Syntax::Operator::Eqv::implies",
     .ppaddr		= &pp_imp_hi,
+};
+
+static const struct XSParseInfixHooks hooks_imp_hi_unicode = {
+    .cls		= XPI_CLS_LOGICAL_OR_MISC,
+    .ppaddr		= &pp_imp_hi_unicode,
 };
 
 static const struct XSParseInfixHooks hooks_imp_lo = {
@@ -114,9 +136,15 @@ BOOT:
 
     register_xs_parse_infix( "Syntax::Operator::Eqv::(==)",
 	&hooks_eqv_hi, NULL );
+    /* FIXME is this **really** how I'm supposed to do this? */
+    register_xs_parse_infix( "Syntax::Operator::Eqv::≍≍",
+	&hooks_eqv_hi_unicode, NULL );
     register_xs_parse_infix( "Syntax::Operator::Eqv::eqv",
 	&hooks_eqv_lo, NULL );
     register_xs_parse_infix( "Syntax::Operator::Eqv::==>>",
 	&hooks_imp_hi, NULL );
+    /* FIXME is this **really** how I'm supposed to do this? */
+    register_xs_parse_infix( "Syntax::Operator::Eqv::⇒⇒",
+	&hooks_imp_hi_unicode, NULL );
     register_xs_parse_infix( "Syntax::Operator::Eqv::imp",
 	&hooks_imp_lo, NULL );

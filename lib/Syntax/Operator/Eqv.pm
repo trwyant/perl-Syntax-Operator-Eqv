@@ -7,6 +7,7 @@ use warnings;
 use utf8;
 
 use Carp;
+use Encode ();
 
 use meta 0.003_002;
 no warnings 'meta::experimental';	## no critic (ProhibitNoWarnings)
@@ -16,6 +17,8 @@ our $VERSION = '0.000_001';
 require XSLoader;
 XSLoader::load( __PACKAGE__, $VERSION );
 
+use constant BOOL_EQV_UNI => "\N{U+224D}" x 2;	# "\N{EQUIVALENT TO}"
+use constant BOOL_IMP_UNI => "\N{U+21D2}" x 2;	# "\N{RIGHTWARDS DOUBLE ARROW"
 use constant REF_HASH	=> ref {};
 
 sub import {				## no critic (RequireArgUnpacking)
@@ -45,16 +48,22 @@ sub unimport_from {			## no critic (RequireArgUnpacking)
 sub apply {
     my ( $pkg, $on, $caller, @args ) = @_;
 
-    state $export_infix_ok = [ qw{ (==) eqv ==>> imp } ];
+    state $export_infix_ok = [
+	qw{ (==) eqv ==>> imp },
+	BOOL_EQV_UNI,
+	BOOL_IMP_UNI,
+    ];
     state $export_ok = [ qw{ equivalent implies } ];
-    state $export = $export_infix_ok;
+    state $export = [ grep { $_ !~ m/ [^[:ascii:]] /smx } @{
+	$export_infix_ok } ];
     state $export_tags = {
 	all	=> [ @{ $export_infix_ok }, @{ $export_ok } ],
 	dflt	=> $export,
 	eqv	=> [ qw{ (==) eqv equivalent } ],
 	imp	=> [ qw{ ==>> imp implies } ],
 	infix	=> $export_infix_ok,
-	wrap	=> $export_ok,
+	unicode	=> [ BOOL_EQV_UNI, BOOL_IMP_UNI ],
+	wrapper	=> $export_ok,
     };
 
     my @syms;
@@ -77,10 +86,17 @@ sub apply {
 	}
     }
     @syms = @{ $export } unless @syms;
-    $pkg->XS::Parse::Infix::apply_infix( $on, \@syms, @{ $export_infix_ok } );
+
+    # FIXME At the moment the symbols need to be encoded utf-8, because
+    # that is what the .xs file has.
+    @syms = _map_args( @syms );
+    state $export_infix_ok_encoded = [ _map_args( @{ $export_infix_ok } ) ];
+
+    $pkg->XS::Parse::Infix::apply_infix( $on, \@syms,
+	@{ $export_infix_ok_encoded } );
 
     my $caller_pkg;
-    my %xok = map { $_ => 1 } @{ $export_ok };
+    my %xok = map { $_ => 1 } _map_args( @{ $export_ok } );
     my @unrecognized;
     while ( @syms ) {
 	my $symbol = shift @syms;
@@ -94,7 +110,9 @@ sub apply {
 	    $on ? $caller_pkg->add_symbol( "&$alias" => \&{$symbol} )
 		: $caller_pkg->remove_symbol( "&$alias" );
 	} else {
-	    push @unrecognized, $symbol;
+	    # FIXME because we encoded the symbols above, we have to
+	    # decode them now.
+	    push @unrecognized, Encode::decode( 'UTF-8', $symbol );
 	}
     }
     local $" = ', ';
@@ -102,9 +120,26 @@ sub apply {
     return;
 }
 
+sub _map_args {
+    my @arg = @_;
+    my @rslt;
+    foreach ( @arg ) {
+	if ( ref ) {
+	    my %opt = %{ $_ };	# Shallow clone
+	    push @rslt, \%opt;
+	    $opt{-as} = Encode::encode( 'UTF-8', $_->{-as} );
+	} else {
+	    push @rslt, Encode::encode( 'UTF-8', $_ );
+	}
+    }
+    return @rslt;
+}
+
 1;
 
 __END__
+
+=encoding utf-8
 
 =head1 NAME
 
@@ -115,7 +150,7 @@ Syntax::Operator::Eqv - Implement infix Boolean equivalence and implication oper
  use Syntax::Operator::Eqv
  
  say '$x and $y are either both true or both false' if $x (==) $y;
- say 'Either $x is false or $y is true' if $x imp $y;
+ say 'Either $x is false or $y is true' if $x ==>> $y;
 
 =head1 DESCRIPTION
 
@@ -155,6 +190,13 @@ C<'||'>. In Algol it has a lower precedence than 'or', but as far as I
 can tell the Perl operator plug-in mechanism does not allow the addition
 of new binding strengths.
 
+=head2 ≍≍
+
+This is just a different spelling of L<(==)|/(==)>. It is 
+C<"\N{U+224D}" x 2>, or equivalently C<"\N{EQUIVALENT TO}" x 2>.
+
+use constant BOOL_IMP_UNI => "\N{U+21D2}" x 2;	# "\N{RIGHTWARDS DOUBLE ARROW"
+
 =head2 eqv
 
 This Boolean operator performs the same function as L<< (==)|/(==) >>,
@@ -187,6 +229,11 @@ C<'||'>. In Algol it has a lower precedence than logical equivalence.
 I admit that I had not originally anticipated implementing this
 operator. But its asymmetric truth table meant that I could test whether
 I had reversed the right and left operands in the F<.xs> code.
+
+=head2 ⇒⇒
+
+This is just a different spelling of L<<< ==>>|/==>> >>>>. It is 
+C<"\N{U+2102}" x 2>, or equivalently C<"\N{RIGHTWARDS DOUBLE ARROW}" x 2>.
 
 =head2 imp
 
@@ -255,7 +302,7 @@ Import all logical implication operators, plus the wrapper function.
 
 Import all infix operators.
 
-=head2 wrap
+=head2 :wrapper
 
 Import all wrapper functions.
 

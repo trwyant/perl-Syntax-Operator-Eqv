@@ -150,6 +150,7 @@ sub requires {
 ##  }
     return +{
 	'Carp'		=> 0,
+	'Encode'	=> 0,
 	'XSLoader'	=> 0,
 	meta		=> 0,
 	strict		=> 0,
