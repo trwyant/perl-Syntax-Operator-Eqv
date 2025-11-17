@@ -64,28 +64,18 @@ sub apply {
     };
 
     my @syms;
-    {
-	my %have;
-	while ( @args ) {
-	    local $_ = shift @args;
-	    if ( s/ \A : //smx ) {
-		croak "'$_' is not a defined export tag"
-		    unless $export_tags->{$_};
-		croak "Export tag '$_' may not be followed by options"
-		    if ref $args[0] eq REF_HASH;
-		foreach ( @{ $export_tags->{$_} } ) {
-		    push @syms, $_ unless $have{$_}++;
-		}
-	    } elsif ( ref( $args[0] ) eq REF_HASH ) {
-		my $as = $args[0]{-as} // $_;
-		if ( $have{$as}++ ) {
-		    shift @args;
-		} else {
-		    push @syms, $_, shift @args;
-		}
-	    } else {
-		push @syms, $_ unless $have{$_}++;
-	    }
+    while ( @args ) {
+	local $_ = shift @args;
+	if ( ref ) {
+	    push @syms, $_;
+	} elsif ( s/ \A : //smx ) {
+	    croak "'$_' is not a defined export tag"
+		unless $export_tags->{$_};
+	    croak "Export tag '$_' may not be followed by options"
+		if ref $args[0] eq REF_HASH;
+	    push @syms, @{ $export_tags->{$_} };
+	} else {
+	    push @syms, $_;
 	}
     }
     @syms = @{ $export } unless @syms;
