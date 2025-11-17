@@ -50,8 +50,6 @@ sub apply {
 
     state $export_infix_ok = [
 	qw{ (==) eqv ==>> imp },
-	BOOL_EQV_UNI,
-	BOOL_IMP_UNI,
     ];
     state $export_ok = [ qw{ equivalent implies } ];
     state $export = [ grep { $_ !~ m/ [^[:ascii:]] /smx } @{
@@ -62,7 +60,6 @@ sub apply {
 	eqv	=> [ qw{ (==) eqv equivalent } ],
 	imp	=> [ qw{ ==>> imp implies } ],
 	infix	=> $export_infix_ok,
-	unicode	=> [ BOOL_EQV_UNI, BOOL_IMP_UNI ],
 	wrapper	=> $export_ok,
     };
 
@@ -79,9 +76,15 @@ sub apply {
 		foreach ( @{ $export_tags->{$_} } ) {
 		    push @syms, $_ unless $have{$_}++;
 		}
+	    } elsif ( ref( $args[0] ) eq REF_HASH ) {
+		my $as = $args[0]{-as} // $_;
+		if ( $have{$as}++ ) {
+		    shift @args;
+		} else {
+		    push @syms, $_, shift @args;
+		}
 	    } else {
 		push @syms, $_ unless $have{$_}++;
-		push @syms, shift @args if ref( $args[0] ) eq REF_HASH;
 	    }
 	}
     }
@@ -190,13 +193,6 @@ C<'||'>. In Algol it has a lower precedence than 'or', but as far as I
 can tell the Perl operator plug-in mechanism does not allow the addition
 of new binding strengths.
 
-=head2 ≍≍
-
-This is just a different spelling of L<(==)|/(==)>. It is 
-C<"\N{U+224D}" x 2>, or equivalently C<"\N{EQUIVALENT TO}" x 2>.
-
-use constant BOOL_IMP_UNI => "\N{U+21D2}" x 2;	# "\N{RIGHTWARDS DOUBLE ARROW"
-
 =head2 eqv
 
 This Boolean operator performs the same function as L<< (==)|/(==) >>,
@@ -227,13 +223,9 @@ This operator has the same precedence as the Boolean or operator
 C<'||'>. In Algol it has a lower precedence than logical equivalence.
 
 I admit that I had not originally anticipated implementing this
-operator. But its asymmetric truth table meant that I could test whether
-I had reversed the right and left operands in the F<.xs> code.
-
-=head2 ⇒⇒
-
-This is just a different spelling of L<<< ==>>|/==>> >>>>. It is 
-C<"\N{U+2102}" x 2>, or equivalently C<"\N{RIGHTWARDS DOUBLE ARROW}" x 2>.
+operator. But its truth table is asymmetric around the main diagonal,
+which meant that I could test whether I had reversed the right and left
+operands in the F<.xs> code.
 
 =head2 imp
 
@@ -279,8 +271,11 @@ For example,
 
  use Syncax::Operator::Eqv eqv { -as => 'is_equivalent_to' }
 
+Validation of the new name, if any, is provided by the underlying
+software.
+
 In addition, export tags are supported. Tags may not be followed by a
-hash reference. The supported export tags are:
+hash reference. The following export tags are provided:
 
 =head2 :all
 
@@ -306,11 +301,30 @@ Import all infix operators.
 
 Import all wrapper functions.
 
+=head1 UNICODE
+
+All the functions and operators provided by this module have ASCII
+names. Names outside the ASCII range can be obtained by the
+C<< { -as => $name } >> mechanism described above under
+L<EXPORTS|/EXPORTS>.
+
+Names outside the ASCII range are supported to the extent that the
+underlying software supports them, or at least handles them correctly.
+As of L<XS::Parse::Infix|XS::Parse::Infix> version C<0.49> and
+L<meta|meta> version C<0.014>, these modules do not document non-ASCII
+identifiers, so presumably the handling of them could change or break
+without notice. I<Caveat coder.>
+
 =head1 SEE ALSO
 
-L<XS::Parse::Keyword|XS::Parse::Keyword>
+L<XS::Parse::Keyword|XS::Parse::Keyword> by Paul Evans, which provides
+the interface to the operator plug-in system.
 
-L<Syntax::Operator::Equ|Syntax::Operator::Equ>
+L<Syntax::Operator::Equ|Syntax::Operator::Equ> by Paul Evans, which I
+consulted heavily while implementing this module.
+
+L<Syntax::Operator::In|Syntax::Operator::In> by Paul Evans, which
+implements an operator (C<'∈'> outside the ASCII range.
 
 L<EXTENDED ALGOL REFERENCE MANUAL for the Burroughs B5000|https://dn790001.ca.archive.org/0/items/bitsavers_burroughsB12B5000ExtendedAlgolReferenceManualwupd1_4777852/5000-21012_B5000_Extended_Algol_Reference_Manual_w_upd_196308.pdf>. See page 27 (29 in the sidebar) for Boolean operators and their precedence.
 

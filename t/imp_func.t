@@ -9,39 +9,15 @@ use Test2::V0;
 use Syntax::Operator::Eqv qw{ implies };
 
 use lib qw{ inc };
-use My::Module::Test qw{ title };
-
-use constant TPLT_TRUE	=> 'implies( %s, %s ) is true';
-use constant TPLT_FALSE	=> 'implies( %s, %s ) is false';
-
-sub ok_imp;
-sub not_ok_imp;
+use My::Module::Test qw{ :bool };
 
 # Truth table
-ok_imp 0, 0;
-ok_imp 0, 1;
-not_ok_imp 1, 0;
-ok_imp 1, 1;
+true  implies( 0, 0 ), 'implies( 0, 0 ) is true';
+true  implies( 0, 1 ), 'implies( 0, 1 ) is true';
+false implies( 1, 0 ), 'implies( 1, 0 ) is false';
+true  implies( 1, 1 ), 'implies( 1, 1 ) is true';
 
 done_testing;
-
-sub not_ok_imp {
-    my ( $lhs, $rhs ) = @_;
-    my $ctx = context;
-    my $rslt = $ctx->ok( ! implies( $lhs, $rhs ),
-	title( TPLT_FALSE, $lhs, $rhs ) );
-    $ctx->release();
-    return $rslt;
-}
-
-sub ok_imp {
-    my ( $lhs, $rhs ) = @_;
-    my $ctx = context;
-    my $rslt = $ctx->ok( implies( $lhs, $rhs ),
-	title( TPLT_TRUE, $lhs, $rhs ) );
-    $ctx->release();
-    return $rslt;
-}
 
 1;
 

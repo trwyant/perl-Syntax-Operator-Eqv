@@ -11,68 +11,24 @@ use Test2::V0;
 
 our $VERSION = '0.000_001';
 
-our @EXPORT_OK = qw{ false true quote title };
-
-{
-    local $@ = undef;
-    eval {
-	require Sub::Util;
-	Sub::Util->VERSION( 1.40 );
-	my $subname = Sub::Util->can( 'subname' )
-	    or die 'Sub::Util::subname not found';
-	*_my_subname = sub {
-	    my $n = Sub::Util::subname( $_[0] );
-	    return defined $n ? "sub $n { ... }" : 'sub { ... }';
-	};
-	1;
-    } or *_my_subname = sub { 'sub { ... }' };
-}
+our @EXPORT_OK = qw{ false true };
+our %EXPORT_TAGS = (
+    all	=> \@EXPORT_OK,
+    bool	=> [ qw{ false true } ],
+);
 
 sub false {
-    my ( $ok, @info ) = @_;
+    my ( $bool, $name, @diag ) = @_;
     my $ctx = context;
-    my $rslt = $ctx->ok( ! $ok, @info );
-    $ctx->release();
-    return $rslt;
+    return $ctx->pass_and_release( $name ) unless $bool;
+    return $ctx->fail_and_release( $name, @diag );
 }
 
 sub true {
-    my ( $ok, @info ) = @_;
+    my ( $bool, $name, @diag ) = @_;
     my $ctx = context;
-    my $rslt = $ctx->ok( $ok, @info );
-    $ctx->release();
-    return $rslt;
-}
-
-sub quote {
-    my @arg = @_;
-    foreach ( @arg ) {
-	if ( ! defined ) {
-	    $_ = 'undef';
-	} elsif ( my $ref = ref ) {
-	    if ( $ref eq 'SCALAR' ) {
-		$_ = '\\' . quote( $$_ );
-	    } elsif ( $ref eq 'CODE' ) {
-		$_ = _my_subname( $_ );
-	    } else {
-		$_ = {
-		    ARRAY	=> '[]',
-		    HASH	=> '{}',
-		}->{ $ref } // "'$ref ref'";
-	    }
-	} elsif ( m/ [^0-9.+-] /smx ) {
-	    s/ ( [\\'] ) /\\$1/smxg;
-	    $_ = "'$_'";
-	} elsif ( $_ eq '' ) {
-	    $_ = q/''/;
-	}
-    }
-    return wantarray ? @arg : $arg[0];
-}
-
-sub title {
-    my ( $tplt, @argz ) = @_;
-    return sprintf $tplt, quote( @argz );
+    return $ctx->pass_and_release( $name ) if $bool;
+    return $ctx->fail_and_release( $name, @diag );
 }
 
 1;
@@ -97,25 +53,39 @@ Documentation is solely for the convenience of the author.
 This Perl module contains test support routines for the
 C<Syntax-Operator-Eqv> distribution.
 
-=head1 METHODS
+=head1 SUBROUTINE
 
 This module provides the following subroutines. All are exportable, but
 none are exported by default.
 
-=head2 quote
+=head2 false
 
-This subroutine quotes its arguments suitably for display in text that
-resembles Perl code. If called in scalar context, only the first
-argument is returned.
+ false 0 == 1, '0 == 1 is false';
 
-=head2 title
+This subroutine implements a test that passes if its first argument is
+Boolean false. The second argument is the test title, and the third and
+subsequent are diagnostics to be emitted if the test fails.
 
-This subroutine formats a test title. It takes as arguments an
-C<sprintf()> format, and the left-hand and right-hand operands being
-tested.
+=head2 true
 
-The return is the result of an C<sprintf()> using the provided template,
-and the subsequent arguments modified by the L<quote()|/quote> function.
+ true 1 == 1, '1 == 1 is true';
+
+This subroutine implements a test that passes if its first argument is
+Boolean true. The second argument is the test title, and the third and
+subsequent are diagnostics to be emitted if the test fails.
+
+=head1 EXPORT TAGS
+
+The following export tags are provided:
+
+=head2 :all
+
+This tag exports everything. At the moment it is equivalent to C<:bool>,
+but this may not always be the case.
+
+=head2 :bool
+
+This tag exports L<false|/false> and L<true|/true>.
 
 =head1 SUPPORT
 

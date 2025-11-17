@@ -11,8 +11,11 @@ eval {
 } or plan skip_all => 'Test::Prereq::Meta not available';
 
 my $tpm = Test::Prereq::Meta->new(
+    # The pruned files can not be analyzed because PPI dies not handle
+    # Unicode operators.
     prune	=> [ qw{
 	t/eqv_op.t
+	t/imp_op.t
     } ],
     uses	=> [ qw{
 	ExtUtils::CBuilder
