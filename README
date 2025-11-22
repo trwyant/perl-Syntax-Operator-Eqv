@@ -12,8 +12,7 @@ has the same precedence as '||', and 'eqv' has the same precedence as
 The implication operator evaluates true if its left operand is false or
 its right operand is true. Otherwise it evaluates false. It comes in two
 forms: '==>>' has the same precedence as '||', and 'imp' has the same
-precedence as 'or'. A wrapper function, 'equivalent_to()', is also
-provided.
+precedence as 'or'. A wrapper function, 'implies()', is also provided.
 
 If you do not like the spelling of these operators, you can rename them
 on import by following the name of the operator or wrapper function with
