@@ -17,14 +17,16 @@ our %EXPORT_TAGS = (
     bool	=> [ qw{ false true } ],
 );
 
-sub false {
+no if $^V >= v5.20.0, feature => qw{ signatures };
+
+sub false ($;$@) {
     my ( $bool, $name, @diag ) = @_;
     my $ctx = context;
     return $ctx->pass_and_release( $name ) unless $bool;
     return $ctx->fail_and_release( $name, @diag );
 }
 
-sub true {
+sub true ($;$@) {
     my ( $bool, $name, @diag ) = @_;
     my $ctx = context;
     return $ctx->pass_and_release( $name ) if $bool;
@@ -42,7 +44,7 @@ My::Module::Test - Test support for Syntax::Operator::Eqv
 =head1 SYNOPSIS
 
  use lib 'inc';
- use My::Module::Test qw{ title };
+ use My::Module::Test qw{ :bool };
 
 =head1 DESCRIPTION
 

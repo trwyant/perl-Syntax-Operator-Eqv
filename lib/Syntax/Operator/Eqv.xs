@@ -17,7 +17,8 @@ static SV *compute_eqv( pTHX_ SV *left, SV *right ) {
     /* TODO warn if either os undef. See
      * 'Warning and Dieing' in perldoc perlapi */
     /* FIXME This is really clunky. The only way I can think of to get
-     * the operator/subroutine name is to pass it in, and I can't tell
+     * the operator/subroutine name is to pass it in, and even that
+     * won't work in the presence of { -as => ... }. And I can't tell
      * whether the undef was literal, a variable, or an expression, so I
      * can't come satisfactorily close to what happens with '&&'. So I
      * think I'm going to abandon the code in place until I can figure

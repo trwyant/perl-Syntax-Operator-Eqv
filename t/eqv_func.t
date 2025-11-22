@@ -5,8 +5,11 @@ use 5.014;
 use strict;
 use warnings;
 
+use utf8;
+
 use Test2::V0;
-use Syntax::Operator::Eqv qw{ equivalent };
+use Syntax::Operator::Eqv qw{ equivalent },
+    equivalent => { -as => 'Φυβαρ' };
 
 use lib qw{ inc };
 use My::Module::Test qw{ :bool };
@@ -16,6 +19,11 @@ true  equivalent( 0, 0 ), 'equivalent( 0, 0 ) is true';
 false equivalent( 0, 1 ), 'equivalent( 0, 1 ) is false';
 false equivalent( 1, 0 ), 'equivalent( 1, 0 ) is false';
 true  equivalent( 1, 1 ), 'equivalent( 1, 1 ) is true';
+
+true  Φυβαρ( 0, 0 ), 'Φυβαρ( 0, 0 ) is true';
+false Φυβαρ( 0, 1 ), 'Φυβαρ( 0, 1 ) is false';
+false Φυβαρ( 1, 0 ), 'Φυβαρ( 1, 0 ) is false';
+true  Φυβαρ( 1, 1 ), 'Φυβαρ( 1, 1 ) is true';
 
 # Other stuff
 true  equivalent( 0, '' ), 'equivalent( 0, \'\' ) is true';

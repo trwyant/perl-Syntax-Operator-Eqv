@@ -14,6 +14,7 @@ my $tpm = Test::Prereq::Meta->new(
     # The pruned files can not be analyzed because PPI dies not handle
     # Unicode operators.
     prune	=> [ qw{
+	t/eqv_func.t
 	t/eqv_op.t
 	t/imp_op.t
     } ],

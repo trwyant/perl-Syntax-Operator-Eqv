@@ -53,11 +53,11 @@ false 0 (==) '0 but true', '0 (==) \'0 but true\' is false';
 {
     my @left;
     my @right;
-    ok @left (==) @right, 'Empty arrays are equivalent';
+    true  @left (==) @right, 'Empty arrays are equivalent';
     @left = ( 'A' );
-    ok ! ( @left (==) @right ), 'Non-empty array not equivalent to empty array';
+    false @left (==) @right, 'Non-empty array not equivalent to empty array';
     @right = qw{ alpha beta };
-    ok @left (==) @right, 'Non-empty arrays are equivalent';
+    true  @left (==) @right, 'Non-empty arrays are equivalent';
 
 }
 

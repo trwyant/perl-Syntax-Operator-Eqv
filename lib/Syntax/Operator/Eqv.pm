@@ -17,8 +17,8 @@ our $VERSION = '0.000_001';
 require XSLoader;
 XSLoader::load( __PACKAGE__, $VERSION );
 
-use constant BOOL_EQV_UNI => "\N{U+224D}" x 2;	# "\N{EQUIVALENT TO}"
-use constant BOOL_IMP_UNI => "\N{U+21D2}" x 2;	# "\N{RIGHTWARDS DOUBLE ARROW"
+use constant BOOL_EQV_UNI => "\N{U+224D}" x 2; # "\N{EQUIVALENT TO}"
+use constant BOOL_IMP_UNI => "\N{U+21D2}" x 2; # "\N{RIGHTWARDS DOUBLE ARROW}"
 use constant REF_HASH	=> ref {};
 
 sub import {				## no critic (RequireArgUnpacking)
@@ -80,52 +80,53 @@ sub apply {
     }
     @syms = @{ $export } unless @syms;
 
-    # FIXME At the moment the symbols need to be encoded utf-8, because
-    # that is what the .xs file has.
-    @syms = _map_args( @syms );
-    state $export_infix_ok_encoded = [ _map_args( @{ $export_infix_ok } ) ];
+    my %i_ok = map { $_ => 1 } @{ $export_infix_ok };
+    my %w_ok = map { $_ => 1 } grep { ! $i_ok{$_} } @{ $export_ok };
+    my @i_sym;	# Infix operators to import
+    my @w_sym;	# Wraooer function symbols to import
+    my @u_sym;	# Unknown symbols to croak on.
+    while ( @syms ) {
+	if ( ref $syms[0] ) {
+	    shift @syms;
+	} elsif ( $i_ok{$syms[0]} ) {
+	    # NOTE that the infix operator symbols need to be encoded
+	    # utf-8 for non-ASCII symbols to work, because that is what
+	    # they are in the .xs file.
+	    push @i_sym, Encode::encode( 'UTF-8', shift @syms );
+	    if ( ref( $syms[0] ) eq REF_HASH ) {
+		my %opt = %{ shift @syms };	# Shallow clone
+		$opt{-as} = Encode::encode( 'UTF-8', $opt{-as} )
+		    if defined $opt{-as};
+		push @i_sym, \%opt;
+	    }
+	} elsif ( $w_ok{$syms[0]} ) {
+	    push @w_sym, shift @syms;
+	    push @w_sym, shift @syms if ref( $syms[0] ) eq REF_HASH;
+	} else {
+	    push @u_sym, shift @syms;
+	    shift @syms if ref $syms[0];
+	}
+    }
 
-    $pkg->XS::Parse::Infix::apply_infix( $on, \@syms,
-	@{ $export_infix_ok_encoded } );
+    $pkg->XS::Parse::Infix::apply_infix( $on, \@i_sym,
+	map { Encode::encode( 'UTF-8', $_ ) } @{ $export_infix_ok } )
+	if @i_sym;
 
     my $caller_pkg;
-    my %xok = map { $_ => 1 } _map_args( @{ $export_ok } );
-    my @unrecognized;
-    while ( @syms ) {
-	my $symbol = shift @syms;
-	my %opt;
-	%opt = %{ shift @syms } if ref( $syms[0] ) eq REF_HASH;
-	my $alias = delete( $opt{ '-as' } ) // $symbol;
+    while ( @w_sym ) {
+	my $symbol = shift @w_sym;
+	my %opt = ref( $w_sym[0] ) eq REF_HASH ? %{ shift @w_sym } : ();
+	my $alias = delete( $opt{-as} ) // $symbol;
 	croak 'Unrecognized import options ', join ', ', sort keys %opt
 	    if keys %opt;
-	if ( $xok{$symbol} ) {
-	    $caller_pkg //= meta::package->get( $caller );
-	    $on ? $caller_pkg->add_symbol( "&$alias" => \&{$symbol} )
-		: $caller_pkg->remove_symbol( "&$alias" );
-	} else {
-	    # FIXME because we encoded the symbols above, we have to
-	    # decode them now.
-	    push @unrecognized, Encode::decode( 'UTF-8', $symbol );
-	}
+	$caller_pkg //= meta::package->get( $caller );
+	$on ? $caller_pkg->add_symbol( "&$alias" => \&{$symbol} )
+	    : $caller_pkg->remove_symbol( "&$alias" );
     }
-    local $" = ', ';
-    croak "Unrecognised import symbols @unrecognized" if @unrecognized;
-    return;
-}
 
-sub _map_args {
-    my @arg = @_;
-    my @rslt;
-    foreach ( @arg ) {
-	if ( ref ) {
-	    my %opt = %{ $_ };	# Shallow clone
-	    push @rslt, \%opt;
-	    $opt{-as} = Encode::encode( 'UTF-8', $_->{-as} );
-	} else {
-	    push @rslt, Encode::encode( 'UTF-8', $_ );
-	}
-    }
-    return @rslt;
+    local $" = ', ';
+    croak "Unrecognised import symbols @u_sym" if @u_sym;
+    return;
 }
 
 1;
@@ -182,6 +183,12 @@ This operator has the same precedence as the Boolean or operator
 C<'||'>. In Algol it has a lower precedence than 'or', but as far as I
 can tell the Perl operator plug-in mechanism does not allow the addition
 of new binding strengths.
+
+B<Note> that the choice of C<(==)> as the spelling of this operator
+means that if the left operand is a subroutine call you will probably
+need to supply the parentheses around the argument list even if it takes
+none. An example I encountered is correctly written C<undef() (==) 0>.
+Just C<undef (==) 0> fails to parse.
 
 =head2 eqv
 
@@ -297,13 +304,6 @@ All the functions and operators provided by this module have ASCII
 names. Names outside the ASCII range can be obtained by the
 C<< { -as => $name } >> mechanism described above under
 L<EXPORTS|/EXPORTS>.
-
-Names outside the ASCII range are supported to the extent that the
-underlying software supports them, or at least handles them correctly.
-As of L<XS::Parse::Infix|XS::Parse::Infix> version C<0.49> and
-L<meta|meta> version C<0.014>, these modules do not document non-ASCII
-identifiers, so presumably the handling of them could change or break
-without notice. I<Caveat coder.>
 
 =head1 SEE ALSO
 
