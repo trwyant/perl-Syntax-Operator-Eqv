@@ -157,6 +157,7 @@ sub requires {
 	strict		=> 0,
 	utf8		=> 0,
 	warnings	=> 0,
+	'XS::Parse::Infix'	=> 0.44,
 	@extra,
     };
 }

@@ -8,6 +8,7 @@ use utf8;
 
 use Carp;
 use Encode ();
+use XS::Parse::Infix 0.44;
 
 use meta 0.003_002;
 no warnings 'meta::experimental';	## no critic (ProhibitNoWarnings)
@@ -52,14 +53,13 @@ sub apply {
 	qw{ (==) eqv ==>> imp },
     ];
     state $export_ok = [ qw{ equivalent implies } ];
-    state $export = [ grep { $_ !~ m/ [^[:ascii:]] /smx } @{
-	$export_infix_ok } ];
+    state $export = [];
     state $export_tags = {
 	all	=> [ @{ $export_infix_ok }, @{ $export_ok } ],
 	dflt	=> $export,
-	eqv	=> [ qw{ (==) eqv equivalent } ],
-	imp	=> [ qw{ ==>> imp implies } ],
-	infix	=> $export_infix_ok,
+	eqv_op	=> [ qw{ (==) eqv } ],
+	imp_op	=> [ qw{ ==>> imp } ],
+	op	=> $export_infix_ok,
 	wrapper	=> $export_ok,
     };
 
@@ -78,10 +78,16 @@ sub apply {
 	    push @syms, $_;
 	}
     }
-    @syms = @{ $export } unless @syms;
 
     my %i_ok = map { $_ => 1 } @{ $export_infix_ok };
     my %w_ok = map { $_ => 1 } grep { ! $i_ok{$_} } @{ $export_ok };
+
+    unless ( @syms ) {
+	@syms = XS::Parse::Infix::HAVE_PL_INFIX_PLUGIN ?
+	    @{ $export } :
+	    grep { ! $i_ok{$_} } @{ $export };
+    }
+
     my @i_sym;	# Infix operators to import
     my @w_sym;	# Wraooer function symbols to import
     my @u_sym;	# Unknown symbols to croak on.
@@ -89,15 +95,19 @@ sub apply {
 	if ( ref $syms[0] ) {
 	    shift @syms;
 	} elsif ( $i_ok{$syms[0]} ) {
-	    # NOTE that the infix operator symbols need to be encoded
-	    # utf-8 for non-ASCII symbols to work, because that is what
-	    # they are in the .xs file.
-	    push @i_sym, Encode::encode( 'UTF-8', shift @syms );
-	    if ( ref( $syms[0] ) eq REF_HASH ) {
-		my %opt = %{ shift @syms };	# Shallow clone
-		$opt{-as} = Encode::encode( 'UTF-8', $opt{-as} )
-		    if defined $opt{-as};
-		push @i_sym, \%opt;
+	    if ( XS::Parse::Infix::HAVE_PL_INFIX_PLUGIN ) {
+		# NOTE that the infix operator symbols need to be
+		# encoded utf-8 for non-ASCII symbols to work, because
+		# that is what they are in the .xs file.
+		push @i_sym, Encode::encode( 'UTF-8', shift @syms );
+		if ( ref( $syms[0] ) eq REF_HASH ) {
+		    my %opt = %{ shift @syms };	# Shallow clone
+		    $opt{-as} = Encode::encode( 'UTF-8', $opt{-as} )
+			if defined $opt{-as};
+		    push @i_sym, \%opt;
+		}
+	    } elsif ( $on ) {
+		croak 'Infix operators require at least Perl v5.38';
 	    }
 	} elsif ( $w_ok{$syms[0]} ) {
 	    push @w_sym, shift @syms;
@@ -255,12 +265,15 @@ This function wraps L<< ==>>|/==>> >> and performs the same computation.
 
 =head1 EXPORTS
 
-All operators and wrapper functions are exportable. The operators are
+All operators and wrapper functions are exportable. Nothing is
 exported by default. B<Note> that operator exports are lexical, but
 wrapper function exports are global. Both can be explicitly removed
 using
 
  no Syntax::Operator::Eqv ...;
+
+B<Note> that infix operators are not supported before Perl v5.38. Any
+attempt to import infix operators on an earlier Perl is a fatal error.
 
 If you do not like the way any export is spelled, you can rename it by
 following it with a hash reference of the form C<< { -as => 'newname' } >>.
@@ -280,17 +293,17 @@ Import everything,
 
 =head2 :dflt
 
-Import whatever is exported by default.
+Import nothing.
 
-=head2 :eqv
+=head2 :eqv_op
 
-Import all logical equivalence operators, plus the wrapper function.
+Import all logical equivalence operators.
 
-=head2 :imp
+=head2 :imp_op
 
-Import all logical implication operators, plus the wrapper function.
+Import all logical implication operators.
 
-=head2 :infix
+=head2 :op
 
 Import all infix operators.
 

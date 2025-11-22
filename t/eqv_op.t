@@ -4,18 +4,18 @@ use 5.014;
 
 use strict;
 use warnings;
-use open qw{ :std :encoding(utf-8) };
+
 use utf8;
 
 use Test2::V0;
-use XS::Parse::Infix;
+use XS::Parse::Infix 0.44;
 
 BEGIN {
-    plan skip_all => "No PL_infix_plugin"
+    plan skip_all => "Perl $^V does not support pluggable operators"
 	unless XS::Parse::Infix::HAVE_PL_INFIX_PLUGIN;
 }
 
-use Syntax::Operator::Eqv ':eqv', '(==)' => { -as => '≍≍' };
+use Syntax::Operator::Eqv ':eqv_op', '(==)' => { -as => '≍≍' };
 
 use lib qw{ inc };
 use My::Module::Test qw{ :bool };

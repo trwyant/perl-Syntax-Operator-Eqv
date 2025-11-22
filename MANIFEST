@@ -18,6 +18,7 @@ t/eqv_func.t
 t/eqv_op.t
 t/imp_func.t
 t/imp_op.t
+t/no_pluggable_ops.t
 xt/author/changes.t
 xt/author/critic.t
 xt/author/executable.t
