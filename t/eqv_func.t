@@ -20,10 +20,13 @@ false equivalent( 0, 1 ), 'equivalent( 0, 1 ) is false';
 false equivalent( 1, 0 ), 'equivalent( 1, 0 ) is false';
 true  equivalent( 1, 1 ), 'equivalent( 1, 1 ) is true';
 
-true  Φυβαρ( 0, 0 ), 'Φυβαρ( 0, 0 ) is true';
-false Φυβαρ( 0, 1 ), 'Φυβαρ( 0, 1 ) is false';
-false Φυβαρ( 1, 0 ), 'Φυβαρ( 1, 0 ) is false';
-true  Φυβαρ( 1, 1 ), 'Φυβαρ( 1, 1 ) is true';
+SKIP: {
+    skip 'Unicode wrapper names require Perl v5.16 or above', 4 if $^V < v5.16;
+    true  Φυβαρ( 0, 0 ), 'Φυβαρ( 0, 0 ) is true';
+    false Φυβαρ( 0, 1 ), 'Φυβαρ( 0, 1 ) is false';
+    false Φυβαρ( 1, 0 ), 'Φυβαρ( 1, 0 ) is false';
+    true  Φυβαρ( 1, 1 ), 'Φυβαρ( 1, 1 ) is true';
+}
 
 # Other stuff
 true  equivalent( 0, '' ), 'equivalent( 0, \'\' ) is true';

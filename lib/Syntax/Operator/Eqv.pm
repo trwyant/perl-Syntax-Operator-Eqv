@@ -269,7 +269,7 @@ For example,
  use Syncax::Operator::Eqv eqv { -as => 'is_equivalent_to' }
 
 Validation of the new name, if any, is provided by the underlying
-software.
+software. Non-ASCII values of C<-as> appear to require Perl v5.16.
 
 In addition, export tags are supported. Tags may not be followed by a
 hash reference. The following export tags are provided:
