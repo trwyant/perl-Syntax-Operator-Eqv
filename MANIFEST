@@ -8,7 +8,6 @@ lib/Syntax/Operator/Eqv.pm
 lib/Syntax/Operator/Eqv.xs
 LICENSES/Artistic
 LICENSES/Copying
-Makefile.PL
 MANIFEST
 META.json
 META.yml

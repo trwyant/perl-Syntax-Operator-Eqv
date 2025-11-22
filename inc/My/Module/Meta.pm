@@ -43,6 +43,7 @@ sub configure_requires {
 	'lib'		=> 0,
 	'strict'	=> 0,
 	'warnings'	=> 0,
+	'Module::Build'	=> 0,
 	'XS::Parse::Infix::Builder'	=> 0,
     };
 }
