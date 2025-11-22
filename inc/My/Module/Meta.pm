@@ -18,7 +18,7 @@ sub new {
 }
 
 sub abstract {
-    return '<<< replace boilerplate >>>';
+    return 'Implement infix Boolean equivalence and implication operators';
 }
 
 sub add_to_cleanup {

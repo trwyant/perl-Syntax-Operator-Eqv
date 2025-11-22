@@ -2,7 +2,36 @@ Syntax-Operator-Eqv is Copyright (C) 2025 by Thomas R. Wyant, III
 
 DESCRIPTION
 
-<<< replace boilerplate >>>
+Implement infix Boolean equivalence and implication operators.
+
+The equivalence operator evaluates true if its operands are both true or
+both false. Otherwise it evaluates false. It comes in two forms: '(==)'
+has the same precedence as '||', and 'eqv' has the same precedence as
+'or'. A wrapper function, 'equivalent()', is also provided. 
+
+The implication operator evaluates true if its left operand is false or
+its right operand is true. Otherwise it evaluates false. It comes in two
+forms: '==>>' has the same precedence as '||', and 'imp' has the same
+precedence as 'or'. A wrapper function, 'equivalent_to()', is also
+provided.
+
+If you do not like the spelling of these operators, you can rename them
+on import by following the name of the operator or wrapper function with
+a hash reference. The value of key '-as' in this hash specifies the name
+registered in your name space. For example:
+
+ use utf8;
+ ...
+ use Syntax::Operator::Eqv '(==)', { -as => '≍' };
+ ...
+ say $x ≍ $y ? 'equivalent' : 'not equivalent';
+
+The '≍' is "\N{EQUIVALENT TO}", a.k.a. "\N{U+224D}".
+
+The wrapper functions can be used as far back as Perl v5.14. The infix
+operators require Perl v5.38.
+
+These operators first came to my attention in Algol 60.
 
 INSTALLATION
 
@@ -31,11 +60,6 @@ You should substitute the appropriate program name for 'make', eg nmake
 (typically) under MSWin32, or mms or mmk under VMS. See
 ftp://ftp.microsoft.com/Softlib/MSLFILES/nmake15.exe for a copy of
 nmake for MSWin32 if you need it.
-
-Of course, since it's pure Perl, you can just expand the kit and drop
-SpaceTrack.pm and the SpaceTrack folder into the Astro directory
-(creating it if necessary) in the appropriate place in your @INC
-directories.
 
 LICENSING INFORMATION
 
