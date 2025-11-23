@@ -1,5 +1,5 @@
 0.000_002	2025-11-22	T. R. Wyant
-    Importing iperators is not fatal before Perl v5.38. For sanity's
+    Importing iperators is now fatal before Perl v5.38. For sanity's
     sake this means nothing is exported by default.
 
     Fix test failures under Perl v5.14.
