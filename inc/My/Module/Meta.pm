@@ -72,15 +72,15 @@ sub meta_merge {
 	resources	=> {
 	    bugtracker	=> {
 #		web	=> 'https://rt.cpan.org/Public/Dist/Display.html?Name=Syntax-Operator-Eqv',
-#		# web	=> 'https://github.com/trwyant/perl-Syntax-Operator-Eqv/issues',
+		web	=> 'https://github.com/trwyant/perl-Syntax-Operator-Eqv/issues',
 		mailto  => 'wyant@cpan.org',
 	    },
 	    license	=> 'http://dev.perl.org/licenses/',
-#	    repository	=> {
-#		type	=> 'git',
-#		url	=> 'git://github.com/trwyant/perl-Syntax-Operator-Eqv.git',
-#		web	=> 'https://github.com/trwyant/perl-Syntax-Operator-Eqv',
-#	    },
+	    repository	=> {
+		type	=> 'git',
+		url	=> 'git://github.com/trwyant/perl-Syntax-Operator-Eqv.git',
+		web	=> 'https://github.com/trwyant/perl-Syntax-Operator-Eqv',
+	    },
 	},
 	@extra,
     };
