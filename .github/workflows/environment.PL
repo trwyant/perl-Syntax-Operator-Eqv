@@ -78,10 +78,7 @@ sub want_modules {
     defined $perl_ver
         or $perl_ver = THIS_PERL;
     foreach (
-	[ qw{ 5.012000  } ],
-	[ qw{ 5.010001 Pod::Text@4.14 } ],
-	[ qw{ 5.010000 Pod::Text@4.14 XSLoader@0.10 } ],
-	[ qw{ 5.000000 Pod::Text@4.14 ExtUtils::ParseXS@3.30 XSLoader@0.10 } ],
+	[ qw{ 5.014000 XS::Parse::Infix::Builder  } ],
     ) {
         my ( $version, @want ) = @{ $_ };
         $perl_ver >= $version
