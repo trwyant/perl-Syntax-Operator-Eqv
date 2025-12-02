@@ -6,8 +6,8 @@ inc/My/Module/Meta.pm
 inc/My/Module/Test.pm
 lib/Syntax/Operator/Eqv.pm
 lib/Syntax/Operator/Eqv.xs
-LICENSES/Artistic
-LICENSES/Copying
+LICENSE-Artistic
+LICENSE-GNU
 MANIFEST
 META.json
 META.yml
