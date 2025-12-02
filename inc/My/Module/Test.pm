@@ -9,7 +9,7 @@ use Carp;
 use Exporter qw{ import };
 use Test2::V0;
 
-our $VERSION = '0.000_002';
+our $VERSION = '0.000_003';
 
 our @EXPORT_OK = qw{ false true };
 our %EXPORT_TAGS = (

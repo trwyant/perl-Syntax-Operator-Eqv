@@ -1,3 +1,14 @@
+0.000_003	2025-12-02	T. R. Wyant
+    Install my GitHub CI machinery v2.0.4.
+
+    Supply GitHub-related metadata.
+
+    Repackage licenses so GitHub can find them.
+
+    Fix typo in Changes file. s/not/now/.
+
+    Correct README installation instructions.
+
 0.000_002	2025-11-22	T. R. Wyant
     Importing iperators is now fatal before Perl v5.38. For sanity's
     sake this means nothing is exported by default.

@@ -13,7 +13,7 @@ use XS::Parse::Infix 0.44;
 use meta 0.003_002;
 no warnings 'meta::experimental';	## no critic (ProhibitNoWarnings)
 
-our $VERSION = '0.000_002';
+our $VERSION = '0.000_003';
 
 require XSLoader;
 XSLoader::load( __PACKAGE__, $VERSION );
