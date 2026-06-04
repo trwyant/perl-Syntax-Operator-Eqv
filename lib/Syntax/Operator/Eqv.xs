@@ -9,7 +9,7 @@
 /*
  * AUTHOR
  *
- * Thomas R. Wyant, III F<wyant at cpan dot org>
+ * Thomas R. Wyant, III F<harryfmudd at comcast dot net>
  *
  * COPYRIGHT AND LICENSE
  *
